@@ -7,9 +7,11 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hyeonew0.subscriptionalarm"
     },
     "android": {
+      "package": "com.hyeonew0.subscriptionalarm",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -23,6 +25,12 @@
     },
     "plugins": [
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "dcd1b26f-f8f3-4a4d-85ca-844ac43fa9da"
+      }
+    },
+    "owner": "hyeonew0"
   }
 }
