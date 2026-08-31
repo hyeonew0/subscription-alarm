@@ -38,6 +38,62 @@ export function toMonthly(sub: MoneyFields, usdRate: number): number {
   }
 }
 
+/** 1234567 → '1,234,567' (Hermes의 Intl 가용성에 기대지 않는 수동 그루핑) */
+function groupDigits(n: number): string {
+  return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+/** KRW 정수 → '13,500원' */
+export function formatKrw(amount: number): string {
+  return `${groupDigits(amount)}원`;
+}
+
+/**
+ * 표시용 금액 문자열.
+ * KRW → '13,500원', USD → '$20.00 (≈28,000원)'
+ */
+export function formatAmount(
+  sub: Pick<MoneyFields, 'amount' | 'currency'>,
+  usdRate: number,
+): string {
+  if (sub.currency === 'KRW') return formatKrw(sub.amount);
+  const dollars = Math.floor(sub.amount / 100);
+  const cents = String(sub.amount % 100).padStart(2, '0');
+  return `$${groupDigits(dollars)}.${cents} (≈${formatKrw(toBaseAmount(sub, usdRate))})`;
+}
+
+/**
+ * 입력 폼 문자열 → 최소 화폐단위 정수.
+ * KRW는 정수 원("13,500" 허용), USD는 소수 2자리까지("20.00" → 2000센트).
+ * 유효하지 않으면 null.
+ */
+export function parseAmountInput(input: string, currency: Currency): number | null {
+  const normalized = input.trim().replace(/,/g, '');
+  if (normalized === '') return null;
+
+  if (currency === 'KRW') {
+    if (!/^\d+$/.test(normalized)) return null;
+    return Number(normalized);
+  }
+  const m = /^(\d+)(?:\.(\d{1,2}))?$/.exec(normalized);
+  if (!m) return null;
+  return Number(m[1]) * 100 + Number((m[2] ?? '0').padEnd(2, '0'));
+}
+
+/**
+ * 입력 폼 실시간 미리보기용: 입력 문자열을 KRW 정수로 환산한다.
+ * 파싱 불가면 null (미리보기 숨김).
+ */
+export function previewKrw(
+  amountInput: string,
+  currency: Currency,
+  usdRate: number,
+): number | null {
+  const amount = parseAmountInput(amountInput, currency);
+  if (amount === null) return null;
+  return toBaseAmount({ amount, currency }, usdRate);
+}
+
 /** 연 환산액 (KRW 정수) */
 export function toYearly(sub: MoneyFields, usdRate: number): number {
   const base = toBaseAmount(sub, usdRate);

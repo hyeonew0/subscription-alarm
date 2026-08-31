@@ -28,3 +28,51 @@ export function getUsdRate(db: SqlDb): number {
 export function getNotifyDaysBefore(db: SqlDb): number {
   return getNumericSetting(db, 'notify_days_before');
 }
+
+function getOffsetsSetting(db: SqlDb, key: string): number[] {
+  const raw = getSetting(db, key) ?? DEFAULT_SETTINGS[key];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.every((n) => Number.isInteger(n) && n >= 0)) {
+      return parsed as number[];
+    }
+  } catch {
+    // fall through to default
+  }
+  return JSON.parse(DEFAULT_SETTINGS[key]) as number[];
+}
+
+/** 구독별 notify_offsets가 없을 때 쓰는 기본 알림 오프셋 (일 단위) */
+export function getDefaultNotifyOffsets(db: SqlDb): number[] {
+  return getOffsetsSetting(db, 'default_notify_offsets');
+}
+
+/** 무료체험 종료 알림 오프셋 (일 단위) */
+export function getTrialNotifyOffsets(db: SqlDb): number[] {
+  return getOffsetsSetting(db, 'trial_notify_offsets');
+}
+
+export interface NotifyTime {
+  hour: number;
+  minute: number;
+}
+
+/** 알림 발송 시각 ('HH:MM', 로컬). 깨진 값은 09:00으로 폴백 */
+export function getNotifyTime(db: SqlDb): NotifyTime {
+  const raw = getSetting(db, 'notify_time') ?? DEFAULT_SETTINGS.notify_time;
+  const m = /^(\d{1,2}):(\d{2})$/.exec(raw);
+  if (m) {
+    const hour = Number(m[1]);
+    const minute = Number(m[2]);
+    if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) return { hour, minute };
+  }
+  return { hour: 9, minute: 0 };
+}
+
+export function getNotifyPermissionAsked(db: SqlDb): boolean {
+  return getSetting(db, 'notify_permission_asked') === 'true';
+}
+
+export function setNotifyPermissionAsked(db: SqlDb, asked: boolean): void {
+  setSetting(db, 'notify_permission_asked', asked ? 'true' : 'false');
+}

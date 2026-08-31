@@ -22,6 +22,8 @@ export interface Subscription {
   status: SubscriptionStatus;
   trialEndAt: string | null;
   memo: string | null;
+  /** 결제일 며칠 전에 알릴지 (일 단위). null이면 settings의 default_notify_offsets 사용 */
+  notifyOffsets: number[] | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -40,8 +42,24 @@ export interface SubscriptionRow {
   status: SubscriptionStatus;
   trial_end_at: string | null;
   memo: string | null;
+  /** JSON int 배열 문자열, 예: '[7,3]' */
+  notify_offsets: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/** notify_offsets JSON 파싱. 깨진 값은 null(기본값 사용)로 처리한다. */
+export function parseNotifyOffsets(raw: string | null): number[] | null {
+  if (raw === null) return null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.every((n) => Number.isInteger(n) && n >= 0)) {
+      return parsed as number[];
+    }
+  } catch {
+    // fall through
+  }
+  return null;
 }
 
 export function rowToSubscription(row: SubscriptionRow): Subscription {
@@ -58,6 +76,7 @@ export function rowToSubscription(row: SubscriptionRow): Subscription {
     status: row.status,
     trialEndAt: row.trial_end_at,
     memo: row.memo,
+    notifyOffsets: parseNotifyOffsets(row.notify_offsets),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

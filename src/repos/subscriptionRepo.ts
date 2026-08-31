@@ -24,6 +24,8 @@ export interface CreateSubscriptionInput {
   status?: SubscriptionStatus;
   trialEndAt?: string | null;
   memo?: string | null;
+  /** 일 단위 알림 오프셋. null이면 settings 기본값 사용 */
+  notifyOffsets?: number[] | null;
 }
 
 export type UpdateSubscriptionPatch = Partial<CreateSubscriptionInput>;
@@ -50,8 +52,8 @@ export function createSubscription(
   db.runSync(
     `INSERT INTO subscriptions
        (id, name, category, amount, currency, cycle, cycle_count,
-        anchor_date, next_billing_at, status, trial_end_at, memo, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        anchor_date, next_billing_at, status, trial_end_at, memo, notify_offsets, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       input.name,
@@ -65,6 +67,7 @@ export function createSubscription(
       status,
       input.trialEndAt ?? null,
       input.memo ?? null,
+      input.notifyOffsets != null ? JSON.stringify(input.notifyOffsets) : null,
       timestamp,
       timestamp,
     ],
@@ -105,6 +108,8 @@ export function updateSubscription(
     status: patch.status ?? existing.status,
     trialEndAt: patch.trialEndAt !== undefined ? patch.trialEndAt : existing.trialEndAt,
     memo: patch.memo !== undefined ? patch.memo : existing.memo,
+    notifyOffsets:
+      patch.notifyOffsets !== undefined ? patch.notifyOffsets : existing.notifyOffsets,
   };
   const nextBillingAt = formatISODate(
     calcNextBilling(merged.anchorDate, merged.cycle, merged.cycleCount, now),
@@ -113,7 +118,8 @@ export function updateSubscription(
   db.runSync(
     `UPDATE subscriptions SET
        name = ?, category = ?, amount = ?, currency = ?, cycle = ?, cycle_count = ?,
-       anchor_date = ?, next_billing_at = ?, status = ?, trial_end_at = ?, memo = ?, updated_at = ?
+       anchor_date = ?, next_billing_at = ?, status = ?, trial_end_at = ?, memo = ?,
+       notify_offsets = ?, updated_at = ?
      WHERE id = ?`,
     [
       merged.name,
@@ -127,6 +133,7 @@ export function updateSubscription(
       merged.status,
       merged.trialEndAt,
       merged.memo,
+      merged.notifyOffsets != null ? JSON.stringify(merged.notifyOffsets) : null,
       now.toISOString(),
       id,
     ],
@@ -174,6 +181,28 @@ export function getUpcoming(db: SqlDb, days: number, from: Date = new Date()): S
       [formatYMD(start), formatYMD(end)],
     )
     .map(rowToSubscription);
+}
+
+/**
+ * next_billing_at이 지난 비해지 구독을 anchor_date 기준으로 재계산한다.
+ * 앱 포그라운드 진입 시(rescheduleAll)마다 호출되어 캐시를 최신으로 유지한다.
+ * @returns 갱신된 행 수
+ */
+export function refreshNextBillingDates(db: SqlDb, now: Date = new Date()): number {
+  const today = formatISODate(now);
+  const stale = db.getAllSync<SubscriptionRow>(
+    `SELECT * FROM subscriptions WHERE status != 'CANCELLED' AND next_billing_at < ?`,
+    [today],
+  );
+  for (const row of stale) {
+    const next = formatISODate(calcNextBilling(row.anchor_date, row.cycle, row.cycle_count, now));
+    db.runSync('UPDATE subscriptions SET next_billing_at = ?, updated_at = ? WHERE id = ?', [
+      next,
+      now.toISOString(),
+      row.id,
+    ]);
+  }
+  return stale.length;
 }
 
 function sumActive(db: SqlDb, convert: (sub: Subscription, rate: number) => number): number {
