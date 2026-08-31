@@ -49,12 +49,23 @@ export interface ColorTokens {
   };
   /** 카테고리 식별 컬러. 다크에서는 채도를 낮춰 눈부심 방지 */
   category: {
-    OTT: string;
-    AI: string;
-    SHOPPING: string;
-    MUSIC: string;
-    ETC: string;
+    OTT: CategoryColor;
+    AI: CategoryColor;
+    SHOPPING: CategoryColor;
+    MUSIC: CategoryColor;
+    ETC: CategoryColor;
   };
+}
+
+/**
+ * 카테고리 컬러 + 명도 3단계 (같은 카테고리 내 항목 구분용, 카드 안에서 1→2→3 반복).
+ * 모든 값은 칩 위 text.inverse와 WCAG AA(4.5:1) 이상 (테스트로 검증).
+ */
+export interface CategoryColor {
+  base: string;
+  1: string;
+  2: string;
+  3: string;
 }
 
 export const lightColors: ColorTokens = {
@@ -84,14 +95,14 @@ export const lightColors: ColorTokens = {
     success: '#166534',
     info: '#1D4ED8',
   },
-  // status.danger와의 충돌을 피해 OTT는 보라. AI/SHOPPING은 흰 칩 텍스트
-  // WCAG AA(4.5:1)를 위해 지정값(#0891B2/#EA580C)보다 한 단계 어둡게 보정.
+  // status.danger와의 충돌을 피해 OTT는 보라. 라이트 셰이드는 흰 칩 텍스트
+  // WCAG AA(4.5:1)를 통과하도록 지정 팔레트에서 한 단계씩 어둡게 보정됨.
   category: {
-    OTT: '#7C3AED',
-    AI: '#0E7490',
-    SHOPPING: '#C2410C',
-    MUSIC: '#DB2777',
-    ETC: '#64748B',
+    OTT: { base: '#7C3AED', 1: '#6D28D9', 2: '#7C3AED', 3: '#8250F0' },
+    AI: { base: '#0E7490', 1: '#155E75', 2: '#0E7490', 3: '#0D7C9B' },
+    SHOPPING: { base: '#C2410C', 1: '#9A3412', 2: '#C2410C', 3: '#CC450E' },
+    MUSIC: { base: '#DB2777', 1: '#9D174D', 2: '#BE185D', 3: '#DB2777' },
+    ETC: { base: '#64748B', 1: '#334155', 2: '#475569', 3: '#64748B' },
   },
 };
 
@@ -122,12 +133,13 @@ export const darkColors: ColorTokens = {
     success: '#6CCF8E',
     info: '#7EB8FF',
   },
+  // 셰이드 순서는 라이트와 동일: 1이 가장 강조(진함), 3으로 갈수록 연함
   category: {
-    OTT: '#A78BFA',
-    AI: '#22D3EE',
-    SHOPPING: '#FB923C',
-    MUSIC: '#F472B6',
-    ETC: '#94A3B8',
+    OTT: { base: '#A78BFA', 1: '#9D7AF8', 2: '#A78BFA', 3: '#C4B5FD' },
+    AI: { base: '#22D3EE', 1: '#06B6D4', 2: '#22D3EE', 3: '#67E8F9' },
+    SHOPPING: { base: '#FB923C', 1: '#F97316', 2: '#FB923C', 3: '#FDBA74' },
+    MUSIC: { base: '#F472B6', 1: '#EC4899', 2: '#F472B6', 3: '#F9A8D4' },
+    ETC: { base: '#94A3B8', 1: '#8494AB', 2: '#94A3B8', 3: '#CBD5E1' },
   },
 };
 

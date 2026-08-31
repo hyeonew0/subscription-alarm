@@ -25,15 +25,17 @@ interface DesignTokenGroup {
 }
 
 function colorGroup(colors: ColorTokens): DesignTokenGroup {
-  const group: DesignTokenGroup = {};
-  for (const [ns, values] of Object.entries(colors)) {
-    const sub: DesignTokenGroup = {};
-    for (const [name, value] of Object.entries(values as Record<string, string>)) {
-      sub[name] = { $type: 'color', $value: value };
+  const walk = (obj: Record<string, unknown>): DesignTokenGroup => {
+    const group: DesignTokenGroup = {};
+    for (const [name, value] of Object.entries(obj)) {
+      group[name] =
+        typeof value === 'string'
+          ? { $type: 'color', $value: value }
+          : walk(value as Record<string, unknown>);
     }
-    group[ns] = sub;
-  }
-  return group;
+    return group;
+  };
+  return walk(colors as unknown as Record<string, unknown>);
 }
 
 function numberGroup(values: Record<string, number>): DesignTokenGroup {

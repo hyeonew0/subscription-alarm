@@ -56,10 +56,15 @@ describe('WCAG AA (4.5:1) 전수 검증', () => {
       expect(inv, `${name} text.inverse on brand = ${inv.toFixed(2)}`).toBeGreaterThanOrEqual(WCAG_AA);
     });
 
-    it(`${name}: 카테고리 칩 배경 위 text.inverse 대비`, () => {
-      for (const [key, value] of Object.entries(colors.category)) {
-        const ratio = contrastRatio(colors.text.inverse, value);
-        expect(ratio, `${name} text.inverse on category.${key} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(WCAG_AA);
+    it(`${name}: 카테고리 칩(base + shade 1~3) 배경 위 text.inverse 대비`, () => {
+      for (const [key, shades] of Object.entries(colors.category)) {
+        for (const [shadeName, value] of Object.entries(shades)) {
+          const ratio = contrastRatio(colors.text.inverse, value);
+          expect(
+            ratio,
+            `${name} text.inverse on category.${key}.${shadeName} = ${ratio.toFixed(2)}`,
+          ).toBeGreaterThanOrEqual(WCAG_AA);
+        }
       }
     });
 
