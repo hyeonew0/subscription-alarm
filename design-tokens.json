@@ -78,19 +78,19 @@
       "category": {
         "OTT": {
           "$type": "color",
-          "$value": "#E5484D"
+          "$value": "#7C3AED"
         },
         "AI": {
           "$type": "color",
-          "$value": "#7C5CD6"
+          "$value": "#0E7490"
         },
         "SHOPPING": {
           "$type": "color",
-          "$value": "#E8850C"
+          "$value": "#C2410C"
         },
         "MUSIC": {
           "$type": "color",
-          "$value": "#29A36A"
+          "$value": "#DB2777"
         },
         "ETC": {
           "$type": "color",
@@ -176,23 +176,23 @@
       "category": {
         "OTT": {
           "$type": "color",
-          "$value": "#D0777B"
+          "$value": "#A78BFA"
         },
         "AI": {
           "$type": "color",
-          "$value": "#9D8BD8"
+          "$value": "#22D3EE"
         },
         "SHOPPING": {
           "$type": "color",
-          "$value": "#D8A05E"
+          "$value": "#FB923C"
         },
         "MUSIC": {
           "$type": "color",
-          "$value": "#6FB893"
+          "$value": "#F472B6"
         },
         "ETC": {
           "$type": "color",
-          "$value": "#9099A8"
+          "$value": "#94A3B8"
         }
       }
     }

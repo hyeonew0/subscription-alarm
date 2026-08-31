@@ -84,11 +84,13 @@ export const lightColors: ColorTokens = {
     success: '#166534',
     info: '#1D4ED8',
   },
+  // status.danger와의 충돌을 피해 OTT는 보라. AI/SHOPPING은 흰 칩 텍스트
+  // WCAG AA(4.5:1)를 위해 지정값(#0891B2/#EA580C)보다 한 단계 어둡게 보정.
   category: {
-    OTT: '#E5484D',
-    AI: '#7C5CD6',
-    SHOPPING: '#E8850C',
-    MUSIC: '#29A36A',
+    OTT: '#7C3AED',
+    AI: '#0E7490',
+    SHOPPING: '#C2410C',
+    MUSIC: '#DB2777',
     ETC: '#64748B',
   },
 };
@@ -121,11 +123,11 @@ export const darkColors: ColorTokens = {
     info: '#7EB8FF',
   },
   category: {
-    OTT: '#D0777B',
-    AI: '#9D8BD8',
-    SHOPPING: '#D8A05E',
-    MUSIC: '#6FB893',
-    ETC: '#9099A8',
+    OTT: '#A78BFA',
+    AI: '#22D3EE',
+    SHOPPING: '#FB923C',
+    MUSIC: '#F472B6',
+    ETC: '#94A3B8',
   },
 };
 

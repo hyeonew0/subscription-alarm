@@ -54,6 +54,13 @@ describe('WCAG AA (4.5:1) 전수 검증', () => {
       expect(inv, `${name} text.inverse on brand = ${inv.toFixed(2)}`).toBeGreaterThanOrEqual(WCAG_AA);
     });
 
+    it(`${name}: 카테고리 칩 배경 위 text.inverse 대비`, () => {
+      for (const [key, value] of Object.entries(colors.category)) {
+        const ratio = contrastRatio(colors.text.inverse, value);
+        expect(ratio, `${name} text.inverse on category.${key} = ${ratio.toFixed(2)}`).toBeGreaterThanOrEqual(WCAG_AA);
+      }
+    });
+
     it(`${name}: status 텍스트 사용 시 canvas/surface 대비`, () => {
       for (const [key, value] of Object.entries(colors.status)) {
         for (const b of ['canvas', 'surface'] as const) {
