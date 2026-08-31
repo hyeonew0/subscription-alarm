@@ -1,0 +1,302 @@
+{
+  "color": {
+    "light": {
+      "bg": {
+        "canvas": {
+          "$type": "color",
+          "$value": "#F5F6F8"
+        },
+        "surface": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        },
+        "surfaceAlt": {
+          "$type": "color",
+          "$value": "#EDEFF3"
+        },
+        "overlay": {
+          "$type": "color",
+          "$value": "#000000A6"
+        }
+      },
+      "text": {
+        "primary": {
+          "$type": "color",
+          "$value": "#1A202C"
+        },
+        "secondary": {
+          "$type": "color",
+          "$value": "#4A5462"
+        },
+        "tertiary": {
+          "$type": "color",
+          "$value": "#60697A"
+        },
+        "inverse": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      },
+      "border": {
+        "default": {
+          "$type": "color",
+          "$value": "#D2D8E0"
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "#E7EAEF"
+        }
+      },
+      "brand": {
+        "primary": {
+          "$type": "color",
+          "$value": "#2563EB"
+        },
+        "onPrimary": {
+          "$type": "color",
+          "$value": "#FFFFFF"
+        }
+      },
+      "status": {
+        "danger": {
+          "$type": "color",
+          "$value": "#B91C1C"
+        },
+        "warning": {
+          "$type": "color",
+          "$value": "#9A4207"
+        },
+        "success": {
+          "$type": "color",
+          "$value": "#166534"
+        },
+        "info": {
+          "$type": "color",
+          "$value": "#1D4ED8"
+        }
+      },
+      "category": {
+        "OTT": {
+          "$type": "color",
+          "$value": "#E5484D"
+        },
+        "AI": {
+          "$type": "color",
+          "$value": "#7C5CD6"
+        },
+        "SHOPPING": {
+          "$type": "color",
+          "$value": "#E8850C"
+        },
+        "MUSIC": {
+          "$type": "color",
+          "$value": "#29A36A"
+        },
+        "ETC": {
+          "$type": "color",
+          "$value": "#64748B"
+        }
+      }
+    },
+    "dark": {
+      "bg": {
+        "canvas": {
+          "$type": "color",
+          "$value": "#121214"
+        },
+        "surface": {
+          "$type": "color",
+          "$value": "#1C1C1F"
+        },
+        "surfaceAlt": {
+          "$type": "color",
+          "$value": "#26262B"
+        },
+        "overlay": {
+          "$type": "color",
+          "$value": "#000000B3"
+        }
+      },
+      "text": {
+        "primary": {
+          "$type": "color",
+          "$value": "#ECEDEF"
+        },
+        "secondary": {
+          "$type": "color",
+          "$value": "#B4BCC7"
+        },
+        "tertiary": {
+          "$type": "color",
+          "$value": "#8E98A5"
+        },
+        "inverse": {
+          "$type": "color",
+          "$value": "#17181A"
+        }
+      },
+      "border": {
+        "default": {
+          "$type": "color",
+          "$value": "#3A3B41"
+        },
+        "subtle": {
+          "$type": "color",
+          "$value": "#2A2B30"
+        }
+      },
+      "brand": {
+        "primary": {
+          "$type": "color",
+          "$value": "#6BA6FF"
+        },
+        "onPrimary": {
+          "$type": "color",
+          "$value": "#0A2540"
+        }
+      },
+      "status": {
+        "danger": {
+          "$type": "color",
+          "$value": "#FF8080"
+        },
+        "warning": {
+          "$type": "color",
+          "$value": "#FFB74D"
+        },
+        "success": {
+          "$type": "color",
+          "$value": "#6CCF8E"
+        },
+        "info": {
+          "$type": "color",
+          "$value": "#7EB8FF"
+        }
+      },
+      "category": {
+        "OTT": {
+          "$type": "color",
+          "$value": "#D0777B"
+        },
+        "AI": {
+          "$type": "color",
+          "$value": "#9D8BD8"
+        },
+        "SHOPPING": {
+          "$type": "color",
+          "$value": "#D8A05E"
+        },
+        "MUSIC": {
+          "$type": "color",
+          "$value": "#6FB893"
+        },
+        "ETC": {
+          "$type": "color",
+          "$value": "#9099A8"
+        }
+      }
+    }
+  },
+  "spacing": {
+    "xs": {
+      "$type": "number",
+      "$value": 4
+    },
+    "sm": {
+      "$type": "number",
+      "$value": 8
+    },
+    "md": {
+      "$type": "number",
+      "$value": 12
+    },
+    "lg": {
+      "$type": "number",
+      "$value": 16
+    },
+    "xl": {
+      "$type": "number",
+      "$value": 24
+    },
+    "xxl": {
+      "$type": "number",
+      "$value": 32
+    }
+  },
+  "radius": {
+    "sm": {
+      "$type": "number",
+      "$value": 8
+    },
+    "md": {
+      "$type": "number",
+      "$value": 12
+    },
+    "lg": {
+      "$type": "number",
+      "$value": 16
+    },
+    "full": {
+      "$type": "number",
+      "$value": 9999
+    }
+  },
+  "typography": {
+    "display": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 32,
+        "lineHeight": 40,
+        "fontWeight": 700
+      }
+    },
+    "title": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 24,
+        "lineHeight": 32,
+        "fontWeight": 700
+      }
+    },
+    "heading": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 20,
+        "lineHeight": 28,
+        "fontWeight": 600
+      }
+    },
+    "body": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 16,
+        "lineHeight": 24,
+        "fontWeight": 400
+      }
+    },
+    "bodyBold": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 16,
+        "lineHeight": 24,
+        "fontWeight": 600
+      }
+    },
+    "caption": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 14,
+        "lineHeight": 20,
+        "fontWeight": 400
+      }
+    },
+    "micro": {
+      "$type": "typography",
+      "$value": {
+        "fontSize": 12,
+        "lineHeight": 16,
+        "fontWeight": 400
+      }
+    }
+  }
+}

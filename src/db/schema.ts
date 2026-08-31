@@ -13,6 +13,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   trial_notify_offsets: '[3,0]',
   notify_time: '09:00',
   notify_permission_asked: 'false',
+  theme_mode: 'system',
 };
 
 const DDL_V1 = `
@@ -84,6 +85,9 @@ const MIGRATIONS: ReadonlyArray<(db: SqlDb, now: Date) => void> = [
       notify_permission_asked: 'false',
       usd_rate_updated_at: formatISODate(now),
     });
+  },
+  function v3(db) {
+    seedSettings(db, { theme_mode: 'system' });
   },
 ];
 

@@ -17,6 +17,17 @@ describe('마이그레이션', () => {
     expect(getSetting(db, 'notify_time')).toBe('09:00');
     expect(getSetting(db, 'notify_permission_asked')).toBe('false');
     expect(getSetting(db, 'usd_rate_updated_at')).toBe('2026-08-31');
+    expect(getSetting(db, 'theme_mode')).toBe('system');
+  });
+
+  it('v2 DB가 v3으로 올라가면 theme_mode가 시드된다', () => {
+    const db = createEmptyDb();
+    migrate(db, NOW, 2);
+    expect(getSetting(db, 'theme_mode')).toBeNull();
+    migrate(db, NOW);
+    expect(getSetting(db, 'theme_mode')).toBe('system');
+    const v = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
+    expect(v?.user_version).toBe(SCHEMA_VERSION);
   });
 
   it('v1 DB(기존 데이터 포함)가 v2로 무손실 마이그레이션된다', () => {

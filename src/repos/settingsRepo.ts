@@ -69,6 +69,18 @@ export function getNotifyTime(db: SqlDb): NotifyTime {
   return { hour: 9, minute: 0 };
 }
 
+export type ThemeModeSetting = 'system' | 'light' | 'dark';
+
+/** 테마 모드. 깨진 값은 'system'으로 폴백 */
+export function getThemeMode(db: SqlDb): ThemeModeSetting {
+  const raw = getSetting(db, 'theme_mode');
+  return raw === 'light' || raw === 'dark' || raw === 'system' ? raw : 'system';
+}
+
+export function setThemeMode(db: SqlDb, mode: ThemeModeSetting): void {
+  setSetting(db, 'theme_mode', mode);
+}
+
 export function getNotifyPermissionAsked(db: SqlDb): boolean {
   return getSetting(db, 'notify_permission_asked') === 'true';
 }
