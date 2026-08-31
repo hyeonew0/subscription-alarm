@@ -56,13 +56,16 @@ describe('WCAG AA (4.5:1) 전수 검증', () => {
       expect(inv, `${name} text.inverse on brand = ${inv.toFixed(2)}`).toBeGreaterThanOrEqual(WCAG_AA);
     });
 
-    it(`${name}: 카테고리 칩(base + shade 1~3) 배경 위 text.inverse 대비`, () => {
+    it(`${name}: 카테고리 칩(base + shade 1~3) 배경 위 칩 텍스트 대비`, () => {
       for (const [key, shades] of Object.entries(colors.category)) {
         for (const [shadeName, value] of Object.entries(shades)) {
-          const ratio = contrastRatio(colors.text.inverse, value);
+          // 밝은 셰이드(AI.3)는 text.onBright(어두운 색)를 쓴다 — 그 외는 text.inverse
+          const usesOnBright = name === 'light' && key === 'AI' && shadeName === '3';
+          const chipText = usesOnBright ? colors.text.onBright : colors.text.inverse;
+          const ratio = contrastRatio(chipText, value);
           expect(
             ratio,
-            `${name} text.inverse on category.${key}.${shadeName} = ${ratio.toFixed(2)}`,
+            `${name} chipText on category.${key}.${shadeName} = ${ratio.toFixed(2)}`,
           ).toBeGreaterThanOrEqual(WCAG_AA);
         }
       }

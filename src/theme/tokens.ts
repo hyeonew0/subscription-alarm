@@ -28,6 +28,8 @@ export interface ColorTokens {
     tertiary: string;
     /** 강조 배경 위 텍스트 */
     inverse: string;
+    /** 밝은 칩/배경 위 텍스트 — 양 모드 모두 어두운 색 (예: AI shade 3) */
+    onBright: string;
   };
   border: {
     default: string;
@@ -73,13 +75,14 @@ export const lightColors: ColorTokens = {
     canvas: '#F8F9FA',
     surface: '#FFFFFF',
     surfaceAlt: '#EDEFF3',
-    overlay: '#000000A6',
+    overlay: '#00000066',
   },
   text: {
     primary: '#1A202C',
     secondary: '#4A5462',
     tertiary: '#60697A',
     inverse: '#FFFFFF',
+    onBright: '#1A202C',
   },
   border: {
     default: '#D2D8E0',
@@ -99,7 +102,9 @@ export const lightColors: ColorTokens = {
   // WCAG AA(4.5:1)를 통과하도록 지정 팔레트에서 한 단계씩 어둡게 보정됨.
   category: {
     OTT: { base: '#7C3AED', 1: '#6D28D9', 2: '#7C3AED', 3: '#8250F0' },
-    AI: { base: '#0E7490', 1: '#155E75', 2: '#0E7490', 3: '#0D7C9B' },
+    // AI.3은 명도 간격 확대를 위해 밝은 청록 — 텍스트는 text.onBright(어두운 색) 사용.
+    // .2 지정값 #0891B2는 흰 텍스트 3.7:1이라 #0E7490으로 보정.
+    AI: { base: '#0E7490', 1: '#0E5A6B', 2: '#0E7490', 3: '#22D3EE' },
     SHOPPING: { base: '#C2410C', 1: '#9A3412', 2: '#C2410C', 3: '#CC450E' },
     MUSIC: { base: '#DB2777', 1: '#9D174D', 2: '#BE185D', 3: '#DB2777' },
     ETC: { base: '#64748B', 1: '#334155', 2: '#475569', 3: '#64748B' },
@@ -111,13 +116,14 @@ export const darkColors: ColorTokens = {
     canvas: '#121214',
     surface: '#1C1C1F',
     surfaceAlt: '#26262B',
-    overlay: '#000000B3',
+    overlay: '#00000094',
   },
   text: {
     primary: '#ECEDEF',
     secondary: '#B4BCC7',
     tertiary: '#8E98A5',
     inverse: '#17181A',
+    onBright: '#17181A',
   },
   border: {
     default: '#3A3B41',

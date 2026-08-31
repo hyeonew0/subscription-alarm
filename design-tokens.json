@@ -16,7 +16,7 @@
         },
         "overlay": {
           "$type": "color",
-          "$value": "#000000A6"
+          "$value": "#00000066"
         }
       },
       "text": {
@@ -35,6 +35,10 @@
         "inverse": {
           "$type": "color",
           "$value": "#FFFFFF"
+        },
+        "onBright": {
+          "$type": "color",
+          "$value": "#1A202C"
         }
       },
       "border": {
@@ -97,7 +101,7 @@
         "AI": {
           "1": {
             "$type": "color",
-            "$value": "#155E75"
+            "$value": "#0E5A6B"
           },
           "2": {
             "$type": "color",
@@ -105,7 +109,7 @@
           },
           "3": {
             "$type": "color",
-            "$value": "#0D7C9B"
+            "$value": "#22D3EE"
           },
           "base": {
             "$type": "color",
@@ -184,7 +188,7 @@
         },
         "overlay": {
           "$type": "color",
-          "$value": "#000000B3"
+          "$value": "#00000094"
         }
       },
       "text": {
@@ -201,6 +205,10 @@
           "$value": "#8E98A5"
         },
         "inverse": {
+          "$type": "color",
+          "$value": "#17181A"
+        },
+        "onBright": {
           "$type": "color",
           "$value": "#17181A"
         }
