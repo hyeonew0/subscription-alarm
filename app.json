@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "subscription-alarm",
+    "name": "구독알리미",
     "slug": "subscription-alarm",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -20,6 +20,9 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-sqlite"
+    ]
   }
 }
