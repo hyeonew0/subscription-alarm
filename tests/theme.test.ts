@@ -4,9 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { contrastRatio } from '../src/theme/contrast';
 import { buildDesignTokens } from '../src/theme/designTokens';
 import {
+  darkCard,
   darkColors,
   darkElevation,
   darkTheme,
+  lightCard,
   lightColors,
   lightTheme,
   radius,
@@ -82,8 +84,8 @@ describe('토큰 구조', () => {
   });
 
   it('typography는 fontSize/lineHeight/fontWeight를 모두 갖는다', () => {
-    expect(typography.display).toEqual({ fontSize: 32, lineHeight: 40, fontWeight: '700' });
-    expect(typography.micro).toEqual({ fontSize: 12, lineHeight: 16, fontWeight: '400' });
+    expect(typography.display).toEqual({ fontSize: 26, lineHeight: 34, fontWeight: '700' });
+    expect(typography.micro).toEqual({ fontSize: 11, lineHeight: 15, fontWeight: '400' });
     for (const t of Object.values(typography)) {
       expect(t.lineHeight).toBeGreaterThan(t.fontSize);
     }
@@ -100,6 +102,18 @@ describe('토큰 구조', () => {
   it('다크 canvas는 순수 검정이 아니다 (#121212 계열)', () => {
     expect(darkColors.bg.canvas).not.toBe('#000000');
     expect(contrastRatio(darkColors.bg.canvas, '#000000')).toBeLessThan(1.5);
+  });
+
+  it('card 규격: 라이트는 은은한 그림자, 다크는 없음', () => {
+    expect(lightCard).toMatchObject({ radius: 20, padding: 20, paddingTight: 16, gap: 16 });
+    expect(darkCard).toMatchObject({ radius: 20, padding: 20, paddingTight: 16, gap: 16 });
+    expect(lightCard.shadow.ios.shadowOpacity).toBeCloseTo(0.04);
+    expect(lightCard.shadow.ios.shadowRadius).toBe(8);
+    expect(lightCard.shadow.ios.shadowOffset.height).toBe(2);
+    expect(darkCard.shadow.ios.shadowOpacity).toBe(0);
+    expect(darkCard.shadow.android.elevation).toBe(0);
+    expect(lightTheme.card).toBe(lightCard);
+    expect(darkTheme.card).toBe(darkCard);
   });
 
   it('다크 테마 elevation은 그림자 없음 (surface 밝기 차이로 표현)', () => {
@@ -128,6 +142,6 @@ describe('design-tokens.json 동기화 (Figma Variables용)', () => {
     expect(tokens.color.light.bg.canvas).toEqual({ $type: 'color', $value: lightColors.bg.canvas });
     expect(tokens.color.dark.brand.primary).toEqual({ $type: 'color', $value: darkColors.brand.primary });
     expect(tokens.spacing.lg).toEqual({ $type: 'number', $value: 16 });
-    expect(tokens.typography.body.$value).toEqual({ fontSize: 16, lineHeight: 24, fontWeight: 400 });
+    expect(tokens.typography.body.$value).toEqual({ fontSize: 15, lineHeight: 22, fontWeight: 400 });
   });
 });

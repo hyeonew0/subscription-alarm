@@ -4,7 +4,7 @@
       "bg": {
         "canvas": {
           "$type": "color",
-          "$value": "#F5F6F8"
+          "$value": "#F8F9FA"
         },
         "surface": {
           "$type": "color",
@@ -245,57 +245,91 @@
     "display": {
       "$type": "typography",
       "$value": {
-        "fontSize": 32,
-        "lineHeight": 40,
+        "fontSize": 26,
+        "lineHeight": 34,
         "fontWeight": 700
       }
     },
     "title": {
       "$type": "typography",
       "$value": {
-        "fontSize": 24,
-        "lineHeight": 32,
+        "fontSize": 19,
+        "lineHeight": 26,
         "fontWeight": 700
       }
     },
     "heading": {
       "$type": "typography",
       "$value": {
-        "fontSize": 20,
-        "lineHeight": 28,
+        "fontSize": 16,
+        "lineHeight": 22,
         "fontWeight": 600
       }
     },
     "body": {
       "$type": "typography",
       "$value": {
-        "fontSize": 16,
-        "lineHeight": 24,
+        "fontSize": 15,
+        "lineHeight": 22,
         "fontWeight": 400
       }
     },
     "bodyBold": {
       "$type": "typography",
       "$value": {
-        "fontSize": 16,
-        "lineHeight": 24,
+        "fontSize": 15,
+        "lineHeight": 22,
         "fontWeight": 600
       }
     },
     "caption": {
       "$type": "typography",
       "$value": {
-        "fontSize": 14,
-        "lineHeight": 20,
+        "fontSize": 13,
+        "lineHeight": 18,
         "fontWeight": 400
       }
     },
     "micro": {
       "$type": "typography",
       "$value": {
-        "fontSize": 12,
-        "lineHeight": 16,
+        "fontSize": 11,
+        "lineHeight": 15,
         "fontWeight": 400
+      }
+    }
+  },
+  "card": {
+    "radius": {
+      "$type": "number",
+      "$value": 20
+    },
+    "padding": {
+      "$type": "number",
+      "$value": 20
+    },
+    "paddingTight": {
+      "$type": "number",
+      "$value": 16
+    },
+    "gap": {
+      "$type": "number",
+      "$value": 16
+    },
+    "shadow": {
+      "light": {
+        "$type": "shadow",
+        "$value": {
+          "color": "rgba(0,0,0,0.04)",
+          "offsetX": 0,
+          "offsetY": 2,
+          "blur": 8,
+          "spread": 0
+        }
+      },
+      "dark": {
+        "$type": "shadow",
+        "$value": null
       }
     }
   }

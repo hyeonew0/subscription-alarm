@@ -81,6 +81,15 @@ export function setThemeMode(db: SqlDb, mode: ThemeModeSetting): void {
   setSetting(db, 'theme_mode', mode);
 }
 
+/** 금액 숨기기 (지하철 등 공공장소용 프라이버시 모드) */
+export function getHideAmounts(db: SqlDb): boolean {
+  return getSetting(db, 'hide_amounts') === 'true';
+}
+
+export function setHideAmounts(db: SqlDb, hidden: boolean): void {
+  setSetting(db, 'hide_amounts', hidden ? 'true' : 'false');
+}
+
 export function getNotifyPermissionAsked(db: SqlDb): boolean {
   return getSetting(db, 'notify_permission_asked') === 'true';
 }

@@ -1,10 +1,13 @@
 import {
+  darkCard,
   darkColors,
+  lightCard,
   lightColors,
   radius,
   spacing,
   typography,
   type ColorTokens,
+  type ElevationToken,
 } from './tokens';
 
 /**
@@ -54,6 +57,17 @@ export function buildDesignTokens(): DesignTokenGroup {
     };
   }
 
+  const shadowValue = (s: ElevationToken) =>
+    s.ios.shadowOpacity === 0
+      ? null
+      : {
+          color: `rgba(0,0,0,${s.ios.shadowOpacity})`,
+          offsetX: s.ios.shadowOffset.width,
+          offsetY: s.ios.shadowOffset.height,
+          blur: s.ios.shadowRadius,
+          spread: 0,
+        };
+
   return {
     color: {
       light: colorGroup(lightColors),
@@ -62,5 +76,17 @@ export function buildDesignTokens(): DesignTokenGroup {
     spacing: numberGroup(spacing),
     radius: numberGroup(radius),
     typography: typographyGroup,
+    card: {
+      ...numberGroup({
+        radius: lightCard.radius,
+        padding: lightCard.padding,
+        paddingTight: lightCard.paddingTight,
+        gap: lightCard.gap,
+      }),
+      shadow: {
+        light: { $type: 'shadow', $value: shadowValue(lightCard.shadow) },
+        dark: { $type: 'shadow', $value: shadowValue(darkCard.shadow) },
+      },
+    },
   };
 }

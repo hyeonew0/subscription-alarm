@@ -59,7 +59,7 @@ export interface ColorTokens {
 
 export const lightColors: ColorTokens = {
   bg: {
-    canvas: '#F5F6F8',
+    canvas: '#F8F9FA',
     surface: '#FFFFFF',
     surfaceAlt: '#EDEFF3',
     overlay: '#000000A6',
@@ -156,13 +156,13 @@ export interface TypographyToken {
 }
 
 export const typography = {
-  display: { fontSize: 32, lineHeight: 40, fontWeight: '700' },
-  title: { fontSize: 24, lineHeight: 32, fontWeight: '700' },
-  heading: { fontSize: 20, lineHeight: 28, fontWeight: '600' },
-  body: { fontSize: 16, lineHeight: 24, fontWeight: '400' },
-  bodyBold: { fontSize: 16, lineHeight: 24, fontWeight: '600' },
-  caption: { fontSize: 14, lineHeight: 20, fontWeight: '400' },
-  micro: { fontSize: 12, lineHeight: 16, fontWeight: '400' },
+  display: { fontSize: 26, lineHeight: 34, fontWeight: '700' },
+  title: { fontSize: 19, lineHeight: 26, fontWeight: '700' },
+  heading: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
+  body: { fontSize: 15, lineHeight: 22, fontWeight: '400' },
+  bodyBold: { fontSize: 15, lineHeight: 22, fontWeight: '600' },
+  caption: { fontSize: 13, lineHeight: 18, fontWeight: '400' },
+  micro: { fontSize: 11, lineHeight: 15, fontWeight: '400' },
 } as const satisfies Record<string, TypographyToken>;
 
 /**
@@ -209,6 +209,32 @@ export const darkElevation: ElevationTokens = {
   modal: NO_ELEVATION,
 };
 
+/** 카드 규격. 그림자는 테마 의존이라 light/dark 분리 */
+export interface CardTokens {
+  radius: number;
+  padding: number;
+  /** 총액·광고 카드처럼 얕은 카드용 */
+  paddingTight: number;
+  /** 카드 간 간격 */
+  gap: number;
+  shadow: ElevationToken;
+}
+
+const CARD_METRICS = { radius: 20, padding: 20, paddingTight: 16, gap: 16 } as const;
+
+export const lightCard: CardTokens = {
+  ...CARD_METRICS,
+  shadow: {
+    ios: { shadowColor: '#000000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 2 } },
+    android: { elevation: 1 },
+  },
+};
+
+export const darkCard: CardTokens = {
+  ...CARD_METRICS,
+  shadow: NO_ELEVATION,
+};
+
 export type ColorScheme = 'light' | 'dark';
 export type ThemeMode = 'system' | ColorScheme;
 
@@ -219,6 +245,7 @@ export interface Theme {
   radius: typeof radius;
   typography: typeof typography;
   elevation: ElevationTokens;
+  card: CardTokens;
 }
 
 export const lightTheme: Theme = {
@@ -228,6 +255,7 @@ export const lightTheme: Theme = {
   radius,
   typography,
   elevation: lightElevation,
+  card: lightCard,
 };
 
 export const darkTheme: Theme = {
@@ -237,4 +265,5 @@ export const darkTheme: Theme = {
   radius,
   typography,
   elevation: darkElevation,
+  card: darkCard,
 };

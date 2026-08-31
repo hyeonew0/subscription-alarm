@@ -30,6 +30,18 @@ describe('마이그레이션', () => {
     expect(v?.user_version).toBe(SCHEMA_VERSION);
   });
 
+  it('v3 DB가 v4로 올라가면 hide_amounts가 시드된다 (기존 데이터 보존)', () => {
+    const db = createEmptyDb();
+    migrate(db, NOW, 3);
+    expect(getSetting(db, 'hide_amounts')).toBeNull();
+    db.runSync(`UPDATE settings SET value = '1500' WHERE key = 'usd_rate'`);
+    migrate(db, NOW);
+    expect(getSetting(db, 'hide_amounts')).toBe('false');
+    expect(getSetting(db, 'usd_rate')).toBe('1500'); // 사용자 값 유지
+    const v = db.getFirstSync<{ user_version: number }>('PRAGMA user_version');
+    expect(v?.user_version).toBe(SCHEMA_VERSION);
+  });
+
   it('v1 DB(기존 데이터 포함)가 v2로 무손실 마이그레이션된다', () => {
     const db = createEmptyDb();
     migrate(db, NOW, 1); // 구버전 상태 재현

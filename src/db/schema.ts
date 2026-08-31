@@ -14,6 +14,7 @@ export const DEFAULT_SETTINGS: Record<string, string> = {
   notify_time: '09:00',
   notify_permission_asked: 'false',
   theme_mode: 'system',
+  hide_amounts: 'false',
 };
 
 const DDL_V1 = `
@@ -88,6 +89,9 @@ const MIGRATIONS: ReadonlyArray<(db: SqlDb, now: Date) => void> = [
   },
   function v3(db) {
     seedSettings(db, { theme_mode: 'system' });
+  },
+  function v4(db) {
+    seedSettings(db, { hide_amounts: 'false' });
   },
 ];
 

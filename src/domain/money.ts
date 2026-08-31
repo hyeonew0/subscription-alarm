@@ -43,19 +43,30 @@ function groupDigits(n: number): string {
   return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 }
 
+/** 금액 숨기기 마스크 */
+export const AMOUNT_MASK = '●●●●●';
+
+/** hidden이면 포맷된 금액 대신 마스크를 반환한다 */
+export function maskAmount(formatted: string, hidden: boolean): string {
+  return hidden ? AMOUNT_MASK : formatted;
+}
+
 /** KRW 정수 → '13,500원' */
-export function formatKrw(amount: number): string {
-  return `${groupDigits(amount)}원`;
+export function formatKrw(amount: number, hidden = false): string {
+  return maskAmount(`${groupDigits(amount)}원`, hidden);
 }
 
 /**
  * 표시용 금액 문자열.
  * KRW → '13,500원', USD → '$20.00 (≈28,000원)'
+ * hidden이면 마스크('●●●●●')를 반환한다 (금액 숨기기 설정).
  */
 export function formatAmount(
   sub: Pick<MoneyFields, 'amount' | 'currency'>,
   usdRate: number,
+  hidden = false,
 ): string {
+  if (hidden) return AMOUNT_MASK;
   if (sub.currency === 'KRW') return formatKrw(sub.amount);
   const dollars = Math.floor(sub.amount / 100);
   const cents = String(sub.amount % 100).padStart(2, '0');
