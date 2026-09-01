@@ -14,6 +14,9 @@ Figma 파일: https://www.figma.com/design/lnQi0U1HDFLD7H5U7ifGfC
 | `08-edit/` | 08_수정폼 | light / dark |
 | `09-permission/` | 09_알림권한_안내 (다이얼로그) | light / dark |
 | `10-cancel/` | 10_해지확인 (다이얼로그) | light / dark |
+| `11-icon/` | 11_아이콘_시안, 12_아이콘_적용, 14_adaptive_icon | concepts / applied / adaptive |
+| `13-splash/` | 13_스플래시 | splash |
 
 - `light`/`dark` = 컬러 모드 (Figma Variables 모드 토글)
+- 아이콘·스플래시(11-icon, 13-splash)는 테마 불변 자산이라 라이트 값 단일 캡처
 - 뷰포트(393×852) 기준 캡처라 스크롤 영역 하단 카드는 잘려 있을 수 있음

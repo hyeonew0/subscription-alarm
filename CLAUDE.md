@@ -41,6 +41,7 @@
   - 공용화: SectionCard(heading+구분선 카드) · EmptyStateCard(목록·통계 빈상태) — 상세·목록도 이걸 쓰도록 리팩터링
 - **화면 6종 전부 구현 완료 (홈·목록·등록·상세·수정·해지·설정·통계)**
 - 개인정보처리방침 (`docs/privacy.html`, GitHub Pages 호스팅 대상 — URL은 `src/lib/links.ts` PRIVACY_POLICY_URL, 설정 정보 카드에 링크 행)
+- 앱 아이콘·스플래시 적용 (assets/ 5종 익스포트, app.json: adaptiveIcon(#2563EB)+expo-splash-screen·expo-notifications 플러그인 — **네이티브 변경이라 다음 dev client 빌드부터 반영**)
 
 ## 다음
 실기기 통합 검증 (dev build 설치 후 전 화면 라이트/다크 확인) → AdMob 연동 · 데이터 내보내기 · 전월 대비 증감
@@ -58,7 +59,8 @@
   | 04_설정 | 1972 | 07_구독상세 | 4930 |
   | 05_통계 | 2465 | 08_수정폼 | 5423 |
   | 09_알림권한_안내 | 5916 | 10_해지확인 | 6409 |
-- 컴포넌트 마스터: 구독카드 (500,1000) · 구독리스트카드 (900,1000) · 구독행 variant set shade=1|2|3 (500,1120) · 서비스셀 (500,1250)
+- 아이콘·스플래시 프레임 (y=0): 11_아이콘_시안 x=6902 (1200×400) · 12_아이콘_적용 x=8202 (800×400) · 13_스플래시 x=9102 (393×852) · 14_adaptive_icon x=9595 (900×400)
+- 컴포넌트 마스터: 구독카드 (500,1000) · 구독리스트카드 (900,1000) · 구독행 variant set shade=1|2|3 (500,1120) · 서비스셀 (500,1250) · 앱아이콘 3종 1024² (500·1700·2900, 1500) — bg 숨기면 글리프만(스플래시·adaptive 전경용)
 - 컬렉션: color(Light/Dark) · spacing · radius · typography · card / 이펙트 스타일 card/shadow-light
 - 스크린샷 익스포트: `screenshots/` (폴더 구조는 screenshots/README.md)
 
