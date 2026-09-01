@@ -71,6 +71,44 @@ export function formatKoreanDate(ymd: YMD): string {
   return `${ymd.month}월 ${ymd.day}일 (${weekday})`;
 }
 
+/** '2026년 6월 3일' 형태의 표시용 포맷 */
+export function formatKoreanFullDate(ymd: YMD): string {
+  return `${ymd.year}년 ${ymd.month}월 ${ymd.day}일`;
+}
+
+/** 시각 → '오전 9:00' / '오후 2:30' (0시=오전 12시, 12시=오후 12시) */
+export function formatKoreanTime(hour: number, minute: number): string {
+  const meridiem = hour < 12 ? '오전' : '오후';
+  const h12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${meridiem} ${h12}:${String(minute).padStart(2, '0')}`;
+}
+
+/** 주기 요약: '매월' / '매주' / '매년' / 'N개월마다' … */
+export function formatCycleShort(cycle: Cycle, cycleCount = 1): string {
+  switch (cycle) {
+    case 'WEEKLY':
+      return cycleCount === 1 ? '매주' : `${cycleCount}주마다`;
+    case 'MONTHLY':
+      return cycleCount === 1 ? '매월' : `${cycleCount}개월마다`;
+    case 'YEARLY':
+      return cycleCount === 1 ? '매년' : `${cycleCount}년마다`;
+  }
+}
+
+/** 앵커 기준 결제 스케줄 설명: '매월 3일' / '매주 수요일' / '매년 6월 3일' */
+export function formatCycleSchedule(anchorDate: string, cycle: Cycle, cycleCount = 1): string {
+  const anchor = parseISODate(anchorDate);
+  const head = formatCycleShort(cycle, cycleCount);
+  switch (cycle) {
+    case 'WEEKLY':
+      return `${head} ${WEEKDAYS_KO[toLocalDate(anchor).getDay()]}요일`;
+    case 'MONTHLY':
+      return `${head} ${anchor.day}일`;
+    case 'YEARLY':
+      return `${head} ${anchor.month}월 ${anchor.day}일`;
+  }
+}
+
 function toYMD(value: string | Date): YMD {
   return typeof value === 'string' ? parseISODate(value) : fromLocalDate(value);
 }
@@ -107,6 +145,11 @@ export function civilFromDays(z: number): YMD {
 
 export function addDaysYMD(ymd: YMD, days: number): YMD {
   return civilFromDays(daysFromCivil(ymd) + days);
+}
+
+/** from(기본 오늘, 로컬)부터 target(ISO)까지 남은 일수. 당일이면 0, 지났으면 음수 */
+export function daysUntil(target: string, from: Date = new Date()): number {
+  return daysFromCivil(parseISODate(target)) - daysFromCivil(fromLocalDate(from));
 }
 
 /**

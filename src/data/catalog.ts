@@ -526,3 +526,31 @@ export const CATALOG: CatalogItem[] = [
     plans: [{ label: '개인 (연간)', amount: 19900, currency: 'KRW', cycle: 'YEARLY' }],
   },
 ];
+
+/** 등록된 구독 이름 → 칩 이니셜. 카탈로그에 없는 이름(직접 입력)은 첫 글자 */
+export function initialForServiceName(name: string): string {
+  const preset = CATALOG.find((i) => i.name === name);
+  return preset?.initial ?? [...name.trim()][0] ?? '?';
+}
+
+/**
+ * 이름·금액·주기가 카탈로그 플랜과 일치하면 플랜 라벨('스탠다드' 등)을 반환한다.
+ * 사용자가 금액을 수정했거나 직접 입력한 구독이면 null.
+ */
+export function planLabelFor(sub: {
+  name: string;
+  amount: number;
+  currency: Currency;
+  cycle: Cycle;
+  cycleCount: number;
+}): string | null {
+  const item = CATALOG.find((i) => i.name === sub.name);
+  const plan = item?.plans.find(
+    (p) =>
+      p.amount === sub.amount &&
+      p.currency === sub.currency &&
+      p.cycle === sub.cycle &&
+      (p.cycleCount ?? 1) === sub.cycleCount,
+  );
+  return plan?.label ?? null;
+}

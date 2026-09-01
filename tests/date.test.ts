@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcNextBilling, formatISODate, parseISODate, toLocalDate } from '../src/domain/date';
+import { calcNextBilling, daysUntil, formatISODate, parseISODate, toLocalDate } from '../src/domain/date';
 
 /** 결과를 로컬 getter 기반 ISO 문자열로 비교한다 */
 function next(anchor: string, cycle: 'WEEKLY' | 'MONTHLY' | 'YEARLY', count: number, from: string): string {
@@ -124,5 +124,29 @@ describe('타임존 안전성 — UTC 경유로 하루 밀리지 않음', () => 
       const d = new Date(2025, 0, 1 + i);
       expect(formatISODate(toLocalDate(parseISODate(formatISODate(d))))).toBe(formatISODate(d));
     }
+  });
+});
+
+describe('daysUntil — D-day 계산', () => {
+  const from = new Date(2026, 8, 2); // 2026-09-02 로컬
+
+  it('당일이면 0', () => {
+    expect(daysUntil('2026-09-02', from)).toBe(0);
+  });
+
+  it('3일 뒤면 3', () => {
+    expect(daysUntil('2026-09-05', from)).toBe(3);
+  });
+
+  it('월 경계를 넘어도 정확하다', () => {
+    expect(daysUntil('2026-10-01', from)).toBe(29);
+  });
+
+  it('연 경계를 넘어도 정확하다', () => {
+    expect(daysUntil('2027-01-01', from)).toBe(121);
+  });
+
+  it('지난 날짜면 음수', () => {
+    expect(daysUntil('2026-09-01', from)).toBe(-1);
   });
 });

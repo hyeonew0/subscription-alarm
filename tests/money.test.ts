@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { toBaseAmount, toMonthly, toYearly, type MoneyFields } from '../src/domain/money';
+import {
+  AMOUNT_MASK,
+  formatUsd,
+  toBaseAmount,
+  toMonthly,
+  toYearly,
+  type MoneyFields,
+} from '../src/domain/money';
 
 const RATE = 1400;
 
@@ -64,5 +71,23 @@ describe('toYearly', () => {
 
   it('WEEKLY × 52', () => {
     expect(toYearly(sub({ amount: 3000, cycle: 'WEEKLY' }), RATE)).toBe(156000);
+  });
+});
+
+describe('formatUsd — 홈 구독행 표시', () => {
+  it('센트가 0이면 소수부를 생략한다 ($20)', () => {
+    expect(formatUsd(2000)).toBe('$20');
+  });
+
+  it('센트가 있으면 2자리로 표시한다 ($15.99)', () => {
+    expect(formatUsd(1599)).toBe('$15.99');
+  });
+
+  it('달러부는 천 단위 그루핑한다', () => {
+    expect(formatUsd(123456)).toBe('$1,234.56');
+  });
+
+  it('hidden이면 마스크를 반환한다', () => {
+    expect(formatUsd(2000, true)).toBe(AMOUNT_MASK);
   });
 });

@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,7 @@ import { ManualSheet } from '../../src/components/register/ManualSheet';
 import { PermissionDialog } from '../../src/components/register/PermissionDialog';
 import { PresetSheet } from '../../src/components/register/PresetSheet';
 import { ServiceChip } from '../../src/components/ServiceChip';
-import type { CatalogCategory, CatalogItem } from '../../src/data/catalog';
+import { CATALOG, type CatalogCategory, type CatalogItem } from '../../src/data/catalog';
 import { searchCatalog } from '../../src/data/catalogSearch';
 import { showToast } from '../../src/lib/toast';
 import { withSubjectParticle } from '../../src/lib/korean';
@@ -64,10 +64,15 @@ export default function AddScreen() {
   const driver = useMemo(() => createExpoNotificationDriver(), []);
   const usdRate = useMemo(() => getUsdRate(db), [db]);
 
+  const { preset } = useLocalSearchParams<{ preset?: string }>();
+
   const [query, setQuery] = useState('');
   const [debounced, setDebounced] = useState('');
   const [category, setCategory] = useState<CatalogCategory | null>(null);
-  const [presetItem, setPresetItem] = useState<CatalogItem | null>(null);
+  // 홈 빈 상태 빠른 시작에서 preset 파라미터로 진입하면 해당 서비스 시트를 바로 연다
+  const [presetItem, setPresetItem] = useState<CatalogItem | null>(
+    () => CATALOG.find((i) => i.id === preset) ?? null,
+  );
   const [manualVisible, setManualVisible] = useState(false);
   const [permissionFor, setPermissionFor] = useState<string | null>(null);
 

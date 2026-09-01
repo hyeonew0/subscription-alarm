@@ -56,6 +56,13 @@ export function formatKrw(amount: number, hidden = false): string {
   return maskAmount(`${groupDigits(amount)}원`, hidden);
 }
 
+/** USD 센트 → '$20' / '$15.99' (센트 0이면 소수부 생략) */
+export function formatUsd(cents: number, hidden = false): string {
+  const dollars = `$${groupDigits(Math.floor(cents / 100))}`;
+  const rest = cents % 100;
+  return maskAmount(rest === 0 ? dollars : `${dollars}.${String(rest).padStart(2, '0')}`, hidden);
+}
+
 /**
  * 표시용 금액 문자열.
  * KRW → '13,500원', USD → '$20.00 (≈28,000원)'
