@@ -279,6 +279,59 @@ describe('rescheduleAll', () => {
   });
 });
 
+describe('maybeRescheduleAll — 포그라운드 자동 복구', () => {
+  it('첫 호출은 실행, 스로틀 간격 안 재호출은 스킵, 간격 지나면 다시 실행', async () => {
+    const { maybeRescheduleAll } = await import('../src/notifications/autoReschedule');
+    const db = createTestDb();
+    const driver = new FakeDriver();
+    createSubscription(
+      db,
+      { name: 'A', category: 'ETC', amount: 1, cycle: 'MONTHLY', anchorDate: '2026-09-15' },
+      NOW,
+    );
+    const HOUR = 60 * 60 * 1000;
+
+    expect(await maybeRescheduleAll(db, driver, NOW, HOUR)).toBe(true);
+    const count = driver.scheduled.size;
+    expect(count).toBeGreaterThan(0);
+
+    // 30분 뒤: 스킵 (예약 그대로)
+    const later30 = new Date(NOW.getTime() + 30 * 60 * 1000);
+    expect(await maybeRescheduleAll(db, driver, later30, HOUR)).toBe(false);
+    expect(driver.scheduled.size).toBe(count);
+
+    // 2시간 뒤: 다시 실행 (기존 취소 후 재예약 → 중복 없음)
+    const later2h = new Date(NOW.getTime() + 2 * HOUR);
+    expect(await maybeRescheduleAll(db, driver, later2h, HOUR)).toBe(true);
+    expect(driver.scheduled.size).toBe(count);
+    expect(driver.cancelled.length).toBe(count);
+  });
+});
+
+describe('runBackgroundReschedule — 일 1회 백그라운드 재예약', () => {
+  it('스로틀 없이 재예약하고 실행 이력 두 키를 기록한다', async () => {
+    const { maybeRescheduleAll, runBackgroundReschedule } = await import(
+      '../src/notifications/autoReschedule'
+    );
+    const { getBackgroundTaskLastRunAt } = await import('../src/repos/settingsRepo');
+    const db = createTestDb();
+    const driver = new FakeDriver();
+    createSubscription(
+      db,
+      { name: 'A', category: 'ETC', amount: 1, cycle: 'MONTHLY', anchorDate: '2026-09-15' },
+      NOW,
+    );
+
+    await runBackgroundReschedule(db, driver, NOW);
+    expect(driver.scheduled.size).toBeGreaterThan(0);
+    expect(getBackgroundTaskLastRunAt(db)).toBe(NOW.toISOString());
+
+    // 직후 포그라운드 진입은 스로틀로 스킵 (타임스탬프 공유 확인)
+    const shortly = new Date(NOW.getTime() + 5 * 60 * 1000);
+    expect(await maybeRescheduleAll(db, driver, shortly)).toBe(false);
+  });
+});
+
 describe('권한', () => {
   it('requestNotificationPermission은 상태를 반환하고 asked 플래그를 기록한다', async () => {
     const db = createTestDb();

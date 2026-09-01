@@ -63,6 +63,58 @@ npx expo start        # Expo Go로 QR 스캔 (안드로이드)
 - [ ] 기본 최적화 상태 수신 확인
 - [ ] 절전 앱 지정 시 동작 기록
 
+## 검증 결과 기록 (2026-09-01, 실기기·development build)
+
+| 항목 | 결과 |
+|---|---|
+| 알림 권한 요청/허용 | ✅ 정상 |
+| 예약 시각 로컬 09:00 | ✅ 정상 (fire_at·OS 예약 모두 09:00) |
+| 오프셋 계산 (7/3일 전 + 트라이얼 3/0일) | ✅ 정상 (9건 구성 분해로 확인, 중복 없음) |
+| 배터리 "제한(Restricted)" | ❌ **발화 안 됨** — 권한 허용 상태에서도 09:00 예약이 차단됨. "최적화"로 변경하자 밀려 있던 알림이 **즉시 발화** → 예약은 유지되나 OS가 발화만 차단하는 구조 |
+| 배터리 "최적화"(기본값) | ✅ 정상 발화 |
+| 앱 완전 종료(스와이프) 상태 수신 | ✅ 정상 (preview build, 배터리 '최적화' + 완전 종료 + 10분 대기 → 수신, OS 예약 목록에서 제거 확인) |
+| 재부팅 후 예약 생존 | ❌ **전부 소실 확인** (preview build, 시드 5건 예약 후 재부팅 → OS 예약 목록 비어 있음) |
+
+### 재부팅 소실 대응 (2026-09-01 구현)
+
+- **사실 관계**: expo-notifications는 BOOT_COMPLETED 리시버 + 재등록 로직
+  (`NotificationsService` SETUP_ACTIONS → `setupScheduledNotifications`)을 내장하고
+  `RECEIVE_BOOT_COMPLETED` 권한도 라이브러리 매니페스트에 선언돼 있어 앱에 자동 병합된다.
+  즉 선언상으로는 지원 — 그러나 **실기기(삼성)에서 재부팅 후 전부 소실**됨.
+  제조사 절전 정책의 부팅 브로드캐스트 차단 또는 재등록 실패로 추정. 신뢰 불가.
+- **주 방어선**: 앱 포그라운드 진입 시 자동 재예약 —
+  `src/notifications/autoReschedule.ts`의 `maybeRescheduleAll()`을 App 최상위
+  AppState 리스너에서 호출. rescheduleAll이 기존 예약을 전부 취소 후 재예약하므로
+  중복 없음. 마지막 실행 시각(settings `reschedule_last_run_at`) 기준 1시간 스로틀.
+- **보조 방어선 (2026-09-01 추가)**: expo-background-task로 **일 1회 백그라운드 재예약** —
+  `src/notifications/backgroundReschedule.ts` (`background-reschedule` 태스크, WorkManager 기반,
+  minimumInterval 1440분). 재부팅 후 앱을 열지 않아도 최대 하루 안에 예약이 복구된다.
+  실행 이력은 settings `background_task_last_run_at`에 기록 → 설정 화면 "알림 상태 진단"용.
+- **v1 잔여 제약**: 삼성 '제한'/'절전 앱' 상태에서는 WorkManager도 차단될 수 있어,
+  그 경우엔 여전히 앱 실행(포그라운드 복구) 또는 배터리 설정 안내가 필요하다.
+
+### 백그라운드 태스크 실기기 확인 방법
+
+1. **검증 화면 [BG 작업 테스트] 버튼** (가장 쉬움, 개발 빌드 전용) —
+   `BackgroundTask.triggerTaskWorkerForTestingAsync()`로 워커를 즉시 강제 실행하고
+   `background_task_last_run_at` 변화를 로그로 보여준다.
+2. **adb로 강제 실행** (release/preview 빌드 포함):
+   ```bash
+   # 등록된 WorkManager 잡 확인 (JOB_ID 파악)
+   adb shell dumpsys jobscheduler | grep -A 4 com.hyeonew0.subscriptionalarm
+   # 강제 실행
+   adb shell cmd jobscheduler run -f com.hyeonew0.subscriptionalarm <JOB_ID>
+   ```
+3. **실행 이력 확인**: 앱 재실행 시 시작 로그의 "BG 태스크 등록됨 (…, 마지막 실행: …)"
+   또는 [BG 작업 테스트] 버튼 출력에서 `background_task_last_run_at` 확인.
+4. **자연 실행 확인**: 예약 이력 시각이 하루 주기로 갱신되는지 2일에 걸쳐 관찰.
+   (WorkManager는 정확한 시각을 보장하지 않고 충전/유휴 상태에 맞춰 배치될 수 있음)
+
+**결론**: 배터리 "제한" 상태 감지·안내가 필요하다.
+- 상태 조회: `src/notifications/battery.ts` (expo-battery 기반. '최적화'와 '제한'의 구분은
+  ActivityManager.isBackgroundRestricted 네이티브 모듈 추가 전까지 불가 — 2단계로만 보고)
+- 설정 화면 "배터리 최적화" 진단 행 + 권한 허용 직후 안내 다이얼로그 목업 반영 (04_설정, 06_배터리_안내)
+
 ## 참고
 - 포그라운드 수신은 App.tsx의 `setNotificationHandler`(banner/list 표시)로 확인 가능
 - 안드로이드 채널: `default` 채널을 HIGH 중요도로 생성함 — 채널 중요도를 낮추면

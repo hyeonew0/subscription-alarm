@@ -81,6 +81,11 @@ export function setThemeMode(db: SqlDb, mode: ThemeModeSetting): void {
   setSetting(db, 'theme_mode', mode);
 }
 
+/** 백그라운드 재예약 태스크 마지막 실행 시각 (ISO). 없으면 null — 설정 화면 진단용 */
+export function getBackgroundTaskLastRunAt(db: SqlDb): string | null {
+  return getSetting(db, 'background_task_last_run_at');
+}
+
 /** 금액 숨기기 (지하철 등 공공장소용 프라이버시 모드) */
 export function getHideAmounts(db: SqlDb): boolean {
   return getSetting(db, 'hide_amounts') === 'true';

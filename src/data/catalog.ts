@@ -242,7 +242,7 @@ export const CATALOG: CatalogItem[] = [
     aliases: ['naver plus', '네이버 멤버십', '네플멤'],
     category: 'SHOPPING',
     color: '#03C75A',
-    initial: 'N',
+    initial: '네이',
     plans: [{ label: '멤버십', amount: 4900, currency: 'KRW', cycle: 'MONTHLY' }],
   },
   {

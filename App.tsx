@@ -1,8 +1,19 @@
 import * as Notifications from 'expo-notifications';
 import { StatusBar } from 'expo-status-bar';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AppState, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { getDb } from './src/db/database';
+import { maybeRescheduleAll } from './src/notifications/autoReschedule';
+import {
+  getBackgroundTaskStatus,
+  registerBackgroundReschedule,
+  triggerBackgroundTaskForTesting,
+} from './src/notifications/backgroundReschedule';
+import {
+  getBatteryOptimizationStatus,
+  openBatteryOptimizationSettings,
+} from './src/notifications/battery';
+import { getBackgroundTaskLastRunAt } from './src/repos/settingsRepo';
 import { createExpoNotificationDriver } from './src/notifications/expoDriver';
 import {
   getPermissionState,
@@ -43,8 +54,31 @@ export default function App() {
       }).catch((e) => log(`채널 생성 실패: ${String(e)}`));
     }
     getPermissionState(driver).then((s) => log(`현재 권한: ${s}`));
-    // eslint 없음 — 최초 1회만
-  }, [driver, log]);
+
+    // 포그라운드 진입 시 자동 재예약 (재부팅 복구 — 1시간 스로틀)
+    const runRecovery = () => {
+      maybeRescheduleAll(db, driver)
+        .then((ran) => {
+          if (ran) log('자동 재예약 실행됨 (재부팅 복구 경로)');
+        })
+        .catch((e) => log(`자동 재예약 실패: ${String(e)}`));
+    };
+    runRecovery();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') runRecovery();
+    });
+
+    // 일 1회 백그라운드 재예약 태스크 등록
+    registerBackgroundReschedule()
+      .then(async () => {
+        const status = await getBackgroundTaskStatus();
+        const lastRun = getBackgroundTaskLastRunAt(db);
+        log(`BG 태스크 등록됨 (status=${status}, 마지막 실행: ${lastRun ?? '없음'})`);
+      })
+      .catch((e) => log(`BG 태스크 등록 실패: ${String(e)}`));
+
+    return () => sub.remove();
+  }, [db, driver, log]);
 
   const run = useCallback(
     (label: string, fn: () => Promise<string>) => async () => {
@@ -72,6 +106,16 @@ export default function App() {
     return `예약됨 (id=${id}) — 앱을 종료하고 기다려 보세요`;
   });
 
+  const onTestIn10m = run('10분 뒤 알림', async () => {
+    const at = new Date(Date.now() + 10 * 60_000);
+    const id = await driver.scheduleAsync({
+      title: '구독알리미 10분 테스트',
+      body: `${at.toLocaleTimeString('ko-KR', { hour12: false })} 발화 예정이던 알림입니다`,
+      triggerDate: at,
+    });
+    return `예약됨 (id=${id}, ${at.toLocaleTimeString('ko-KR', { hour12: false })}) — 앱 종료/배터리 상태별로 수신 확인`;
+  });
+
   const onScheduleSeed = run('시드 5건 예약', async () => {
     await rescheduleAll(db, driver);
     const rows = db.getAllSync<{ fire_at: string; kind: string }>(
@@ -79,6 +123,28 @@ export default function App() {
     );
     const preview = rows.slice(0, 5).map((r) => `${r.fire_at}(${r.kind})`).join('\n  ');
     return `예약 ${rows.length}건:\n  ${preview}`;
+  });
+
+  // 설정 화면 "배터리 최적화" 행의 탭 동작과 동일: 언제든 상태 재확인 + 설정 이동
+  const onBattery = run('배터리 상태', async () => {
+    const status = await getBatteryOptimizationStatus();
+    const label =
+      status === 'unrestricted'
+        ? '제한 없음(예외 등록됨)'
+        : status === 'optimized'
+          ? '최적화 적용 중(제한 여부 구분 불가)'
+          : '해당 없음(iOS)';
+    if (status !== 'not-applicable') await openBatteryOptimizationSettings();
+    return `상태: ${label}${status !== 'not-applicable' ? ' — 설정 화면을 열었습니다' : ''}`;
+  });
+
+  const onBgTask = run('BG 작업 테스트', async () => {
+    const before = getBackgroundTaskLastRunAt(db);
+    await triggerBackgroundTaskForTesting();
+    // 워커는 비동기로 돌므로 잠시 후 이력 확인
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+    const after = getBackgroundTaskLastRunAt(db);
+    return `강제 실행 요청됨 — 마지막 실행: ${before ?? '없음'} → ${after ?? '없음(아직 미반영, 잠시 후 재확인)'}`;
   });
 
   const onListScheduled = run('예약 목록 조회', async () => {
@@ -99,8 +165,11 @@ export default function App() {
       <View style={styles.buttons}>
         <Btn label="권한 요청" onPress={onRequestPermission} />
         <Btn label="10초 뒤 알림" onPress={onTestIn10s} />
+        <Btn label="10분 뒤 알림" onPress={onTestIn10m} />
         <Btn label="시드 5건 예약" onPress={onScheduleSeed} />
         <Btn label="예약 목록 조회" onPress={onListScheduled} />
+        <Btn label="배터리 상태" onPress={onBattery} />
+        <Btn label="BG 작업 테스트" onPress={onBgTask} />
       </View>
       <ScrollView style={styles.logArea}>
         {logs.map((line, i) => (
