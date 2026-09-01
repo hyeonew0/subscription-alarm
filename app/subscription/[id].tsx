@@ -4,6 +4,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { AppText } from '../../src/components/AppText';
 import { Card } from '../../src/components/Card';
+import { ConfirmDialog } from '../../src/components/ConfirmDialog';
+import { OptionSheet } from '../../src/components/form/OptionSheet';
 import { Screen } from '../../src/components/Screen';
 import { SectionCard } from '../../src/components/SectionCard';
 import { ServiceChip } from '../../src/components/ServiceChip';
@@ -22,10 +24,20 @@ import { formatOffsets } from '../../src/domain/offsets';
 import type { Subscription } from '../../src/domain/types';
 import { getDb } from '../../src/db/database';
 import { showToast } from '../../src/lib/toast';
+import { createExpoNotificationDriver } from '../../src/notifications/expoDriver';
+import {
+  cancelForSubscription,
+  scheduleForSubscription,
+} from '../../src/notifications/scheduler';
 import { getHideAmounts, getUsdRate } from '../../src/repos/settingsRepo';
-import { getSubscription } from '../../src/repos/subscriptionRepo';
+import {
+  getSubscription,
+  softDeleteSubscription,
+  updateSubscription,
+} from '../../src/repos/subscriptionRepo';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { getCategoryChipColors } from '../../src/theme/tokens';
+
 
 /** label(caption/secondary) — value(body/600/primary) 행 */
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
@@ -50,8 +62,12 @@ export default function SubscriptionDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
   const db = useMemo(() => getDb(), []);
+  const driver = useMemo(() => createExpoNotificationDriver(), []);
 
   const [sub, setSub] = useState<Subscription | null>(() => (id ? getSubscription(db, id) : null));
+  const [menuVisible, setMenuVisible] = useState(false);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [busy, setBusy] = useState(false);
   // 수정 화면에서 돌아왔을 때 반영
   useFocusEffect(
     useCallback(() => {
@@ -61,6 +77,43 @@ export default function SubscriptionDetailScreen() {
 
   const usdRate = useMemo(() => getUsdRate(db), [db]);
   const hidden = useMemo(() => getHideAmounts(db), [db]);
+
+  const cancelled = sub?.status === 'CANCELLED';
+
+  /** 해지: 해지함 이동(status만 변경) + 예약 알림 전부 취소 */
+  const cancelSubscription = async () => {
+    if (!sub || busy) return;
+    setBusy(true);
+    try {
+      softDeleteSubscription(db, sub.id);
+      await cancelForSubscription(db, driver, sub.id);
+      setConfirmVisible(false);
+      showToast(`${sub.name} 구독이 해지됐어요`);
+      router.back();
+    } catch (e) {
+      showToast(`해지에 실패했어요: ${String(e)}`);
+      setConfirmVisible(false);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  /** 재개: ACTIVE 복귀 — updateSubscription이 anchor 기준으로 next_billing_at을 재계산한다
+   *  (해지 후 시간이 지나 캐시가 과거 날짜여도 앞으로의 첫 결제일로 갱신됨) */
+  const resumeSubscription = async () => {
+    if (!sub || busy) return;
+    setBusy(true);
+    try {
+      const updated = updateSubscription(db, sub.id, { status: 'ACTIVE' });
+      await scheduleForSubscription(db, driver, updated);
+      setSub(updated);
+      showToast(`${sub.name} 구독이 다시 시작됐어요`);
+    } catch (e) {
+      showToast(`재개에 실패했어요: ${String(e)}`);
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const header = (
     <View
@@ -75,11 +128,7 @@ export default function SubscriptionDetailScreen() {
         <Feather name="chevron-left" size={24} color={theme.colors.text.primary} />
       </Pressable>
       {sub && (
-        <Pressable
-          onPress={() => router.push(`/subscription/${sub.id}/edit`)}
-          accessibilityLabel="수정"
-          hitSlop={8}
-        >
+        <Pressable onPress={() => setMenuVisible(true)} accessibilityLabel="메뉴" hitSlop={8}>
           <Feather name="more-horizontal" size={24} color={theme.colors.text.primary} />
         </Pressable>
       )}
@@ -119,6 +168,20 @@ export default function SubscriptionDetailScreen() {
             textColor={chip.text}
             size={64}
           />
+          {cancelled && (
+            <View
+              style={{
+                paddingHorizontal: theme.spacing.md,
+                paddingVertical: 2,
+                borderRadius: theme.radius.full,
+                backgroundColor: theme.colors.bg.surfaceAlt,
+              }}
+            >
+              <AppText variant="caption" color="tertiary">
+                해지됨
+              </AppText>
+            </View>
+          )}
           <View style={{ alignItems: 'center', gap: theme.spacing.xs }}>
             <AppText variant="title">{sub.name}</AppText>
             <AppText variant="caption" color="tertiary">
@@ -193,28 +256,57 @@ export default function SubscriptionDetailScreen() {
         </SectionCard>
       )}
 
-      {sub.status !== 'CANCELLED' && (
-        <View style={{ paddingTop: theme.spacing.sm }}>
-          <Pressable
-            accessibilityRole="button"
-            // TODO: 10_해지확인 다이얼로그 연결 (다음 스텝)
-            onPress={() => showToast('해지 확인은 곧 추가돼요')}
-            style={({ pressed }) => ({
-              height: 52,
-              borderRadius: theme.radius.md,
-              borderWidth: 1,
-              borderColor: theme.colors.status.danger,
-              alignItems: 'center',
-              justifyContent: 'center',
-              opacity: pressed ? 0.7 : 1,
-            })}
+      <View style={{ paddingTop: theme.spacing.sm }}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => (cancelled ? resumeSubscription() : setConfirmVisible(true))}
+          disabled={busy}
+          style={({ pressed }) => ({
+            height: 52,
+            borderRadius: theme.radius.md,
+            borderWidth: 1,
+            borderColor: cancelled ? theme.colors.brand.primary : theme.colors.status.danger,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed ? 0.7 : 1,
+          })}
+        >
+          <AppText
+            variant="body"
+            color={cancelled ? 'brand' : 'danger'}
+            style={{ fontWeight: '600' }}
           >
-            <AppText variant="body" color="danger" style={{ fontWeight: '600' }}>
-              구독 해지
-            </AppText>
-          </Pressable>
-        </View>
-      )}
+            {cancelled ? '구독 재개' : '구독 해지'}
+          </AppText>
+        </Pressable>
+      </View>
+
+      <OptionSheet
+        visible={menuVisible}
+        title={sub.name}
+        options={[
+          { value: 'edit', label: '수정' },
+          cancelled
+            ? { value: 'resume', label: '재개' }
+            : { value: 'cancel', label: '해지', destructive: true },
+        ]}
+        selected={null}
+        onSelect={(action) => {
+          if (action === 'edit') router.push(`/subscription/${sub.id}/edit`);
+          else if (action === 'resume') resumeSubscription();
+          // 시트 Modal이 닫힌 뒤 다이얼로그 Modal을 열어야 겹침 경합이 없다
+          else setTimeout(() => setConfirmVisible(true), 350);
+        }}
+        onClose={() => setMenuVisible(false)}
+      />
+      <ConfirmDialog
+        visible={confirmVisible}
+        title={`${sub.name} 구독을 해지할까요?`}
+        message={'해지함으로 이동하며, 알림도 중지됩니다\n기록은 남아있어 나중에 다시 볼 수 있어요'}
+        confirmLabel="해지하기"
+        onCancel={() => setConfirmVisible(false)}
+        onConfirm={cancelSubscription}
+      />
     </Screen>
   );
 }

@@ -75,6 +75,25 @@ describe('subscription CRUD', () => {
     expect(listSubscriptions(db, { status: 'ACTIVE' })).toHaveLength(0);
   });
 
+  it('재개(status→ACTIVE): 해지 중 지난 next_billing_at을 anchor 기준으로 재계산한다', () => {
+    const db = createTestDb();
+    // 3/15에 등록·해지된 구독 (next_billing_at 캐시가 과거 날짜로 남음)
+    const march = new Date(2026, 2, 10);
+    const sub = createSubscription(
+      db,
+      { name: 'C', category: 'ETC', amount: 1000, cycle: 'MONTHLY', anchorDate: '2026-03-15' },
+      march,
+    );
+    softDeleteSubscription(db, sub.id, march);
+    expect(getSubscription(db, sub.id)?.nextBillingAt).toBe('2026-03-15');
+
+    // NOW(8/31)에 재개 → 앞으로의 첫 결제일(9/15)로 갱신 + ACTIVE 목록 복귀
+    const resumed = updateSubscription(db, sub.id, { status: 'ACTIVE' }, NOW);
+    expect(resumed.status).toBe('ACTIVE');
+    expect(resumed.nextBillingAt).toBe('2026-09-15');
+    expect(listSubscriptions(db, { status: 'ACTIVE' })).toHaveLength(1);
+  });
+
   it('list 필터: status, category', () => {
     const db = createTestDb();
     createSubscription(db, { name: 'N', category: 'OTT', amount: 1, cycle: 'MONTHLY', anchorDate: '2026-01-01' }, NOW);
