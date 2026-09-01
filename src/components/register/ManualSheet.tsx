@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { fromLocalDate, formatYMD, type YMD } from '../../domain/date';
 import { parseAmountInput } from '../../domain/money';
 import type { Currency, Cycle } from '../../domain/types';
@@ -7,9 +7,10 @@ import { showToast } from '../../lib/toast';
 import type { CreateSubscriptionInput } from '../../repos/subscriptionRepo';
 import { useTheme } from '../../theme/ThemeProvider';
 import { BottomSheet } from '../BottomSheet';
-import { CurrencyToggle } from '../CurrencyToggle';
 import { CycleSegment } from '../CycleSegment';
 import { DateField } from '../DateField';
+import { AmountRow } from '../form/AmountRow';
+import { FieldLabel, FormTextInput } from '../form/FormField';
 
 const CATEGORIES: Array<[string, string]> = [
   ['OTT', 'OTT'],
@@ -37,25 +38,6 @@ export function ManualSheet({
   const [cycle, setCycle] = useState<Cycle>('MONTHLY');
   const [date, setDate] = useState<YMD>(() => fromLocalDate(new Date()));
 
-  const caption = theme.typography.caption;
-  const body = theme.typography.body;
-  const inputStyle = {
-    height: 52,
-    borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.bg.canvas,
-    paddingHorizontal: theme.spacing.lg,
-    fontSize: body.fontSize,
-    color: theme.colors.text.primary,
-  } as const;
-  const label = (text: string) => (
-    <Text
-      style={{ fontSize: caption.fontSize, color: theme.colors.text.secondary, marginBottom: 8 }}
-      maxFontSizeMultiplier={1.3}
-    >
-      {text}
-    </Text>
-  );
-
   const submit = () => {
     const trimmed = name.trim();
     const amount = parseAmountInput(amountText, currency);
@@ -78,21 +60,14 @@ export function ManualSheet({
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ gap: 20 }}>
-        <View>
-          {label('서비스명')}
-          <TextInput
-            style={inputStyle}
-            value={name}
-            onChangeText={setName}
-            placeholder="예: 넷플릭스"
-            placeholderTextColor={theme.colors.text.tertiary}
-            maxFontSizeMultiplier={1.3}
-          />
+        <View style={{ gap: theme.spacing.sm }}>
+          <FieldLabel>서비스명</FieldLabel>
+          <FormTextInput value={name} onChangeText={setName} placeholder="예: 넷플릭스" />
         </View>
 
-        <View>
-          {label('카테고리')}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={{ gap: theme.spacing.sm }}>
+          <FieldLabel>카테고리</FieldLabel>
+          <View style={{ flexDirection: 'row', gap: theme.spacing.sm }}>
             {CATEGORIES.map(([value, text]) => {
               const active = value === category;
               return (
@@ -108,7 +83,7 @@ export function ManualSheet({
                 >
                   <Text
                     style={{
-                      fontSize: caption.fontSize,
+                      fontSize: theme.typography.caption.fontSize,
                       color: active ? theme.colors.brand.onPrimary : theme.colors.text.secondary,
                     }}
                     maxFontSizeMultiplier={1.3}
@@ -121,29 +96,23 @@ export function ManualSheet({
           </View>
         </View>
 
-        <View>
-          {label('금액')}
-          <View style={{ flexDirection: 'row', gap: 8 }}>
-            <TextInput
-              style={[inputStyle, { flex: 1 }]}
-              value={amountText}
-              onChangeText={setAmountText}
-              placeholder={currency === 'KRW' ? '13,500' : '20.00'}
-              placeholderTextColor={theme.colors.text.tertiary}
-              keyboardType="decimal-pad"
-              maxFontSizeMultiplier={1.3}
-            />
-            <CurrencyToggle value={currency} onChange={setCurrency} />
-          </View>
+        <View style={{ gap: theme.spacing.sm }}>
+          <FieldLabel>금액</FieldLabel>
+          <AmountRow
+            amountText={amountText}
+            onAmountText={setAmountText}
+            currency={currency}
+            onCurrency={setCurrency}
+          />
         </View>
 
-        <View>
-          {label('결제 주기')}
+        <View style={{ gap: theme.spacing.sm }}>
+          <FieldLabel>결제 주기</FieldLabel>
           <CycleSegment value={cycle} onChange={setCycle} />
         </View>
 
-        <View>
-          {label('다음 결제일')}
+        <View style={{ gap: theme.spacing.sm }}>
+          <FieldLabel>다음 결제일</FieldLabel>
           <DateField value={date} onChange={setDate} />
         </View>
 
@@ -158,7 +127,11 @@ export function ManualSheet({
           }}
         >
           <Text
-            style={{ fontSize: body.fontSize, fontWeight: '700', color: theme.colors.brand.onPrimary }}
+            style={{
+              fontSize: theme.typography.body.fontSize,
+              fontWeight: '700',
+              color: theme.colors.brand.onPrimary,
+            }}
             maxFontSizeMultiplier={1.3}
           >
             추가하기
