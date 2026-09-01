@@ -79,6 +79,10 @@ describe('scheduleForSubscription', () => {
     for (const d of dates) {
       expect([d.getHours(), d.getMinutes()]).toEqual([9, 0]); // 로컬 09:00
     }
+    // 알림 탭 라우팅용 페이로드
+    for (const r of driver.scheduled.values()) {
+      expect(r.data).toEqual({ subscriptionId: sub.id, kind: 'BILLING' });
+    }
     // 9/15 결제 → 9/8, 9/12 (로컬 달력 기준)
     expect(dates.map((d) => [d.getMonth() + 1, d.getDate()])).toEqual([[9, 8], [9, 12]]);
   });

@@ -17,7 +17,7 @@ export function createExpoNotificationDriver(): NotificationDriver {
   return {
     async scheduleAsync(request) {
       return Notifications.scheduleNotificationAsync({
-        content: { title: request.title, body: request.body },
+        content: { title: request.title, body: request.body, data: request.data },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           date: request.triggerDate,

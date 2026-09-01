@@ -9,6 +9,8 @@ export interface NotificationRequest {
   body: string;
   /** 발화 시각 (로컬) */
   triggerDate: Date;
+  /** 알림 탭 시 라우팅용 페이로드 (예: subscriptionId) */
+  data?: Record<string, unknown>;
 }
 
 export interface NotificationDriver {

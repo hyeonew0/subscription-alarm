@@ -266,6 +266,23 @@ export interface Theme {
   card: CardTokens;
 }
 
+/**
+ * 카테고리 칩 색 조합. 밝은 셰이드(라이트 AI.3)는 흰 텍스트 AA 미달이라
+ * text.onBright(어두운 색)를 쓴다 — 나머지는 text.inverse.
+ */
+export function getCategoryChipColors(
+  theme: Pick<Theme, 'scheme' | 'colors'>,
+  category: keyof ColorTokens['category'],
+  shade: 1 | 2 | 3,
+): { bg: string; text: string } {
+  const bg = theme.colors.category[category][shade];
+  const text =
+    theme.scheme === 'light' && category === 'AI' && shade === 3
+      ? theme.colors.text.onBright
+      : theme.colors.text.inverse;
+  return { bg, text };
+}
+
 export const lightTheme: Theme = {
   scheme: 'light',
   colors: lightColors,

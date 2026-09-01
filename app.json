@@ -2,6 +2,7 @@
   "expo": {
     "name": "구독알리미",
     "slug": "subscription-alarm",
+    "scheme": "subscriptionalarm",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -25,7 +26,9 @@
     },
     "plugins": [
       "expo-sqlite",
-      "expo-background-task"
+      "expo-background-task",
+      "expo-router",
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {

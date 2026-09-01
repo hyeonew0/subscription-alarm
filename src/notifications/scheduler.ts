@@ -136,6 +136,8 @@ async function scheduleCandidates(
       title: c.title,
       body: c.body,
       triggerDate: c.fireAt,
+      // 알림 탭 시 구독 상세로 라우팅하기 위한 페이로드
+      data: { subscriptionId: c.subscriptionId, kind: c.kind },
     });
     db.runSync(
       'INSERT INTO notification_map (notification_id, subscription_id, kind, fire_at) VALUES (?, ?, ?, ?)',

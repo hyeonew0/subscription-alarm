@@ -63,6 +63,14 @@ export function formatISODate(date: Date): string {
   return formatYMD(fromLocalDate(date));
 }
 
+const WEEKDAYS_KO = ['일', '월', '화', '수', '목', '금', '토'];
+
+/** '9월 3일 (수)' 형태의 표시용 포맷 */
+export function formatKoreanDate(ymd: YMD): string {
+  const weekday = WEEKDAYS_KO[toLocalDate(ymd).getDay()];
+  return `${ymd.month}월 ${ymd.day}일 (${weekday})`;
+}
+
 function toYMD(value: string | Date): YMD {
   return typeof value === 'string' ? parseISODate(value) : fromLocalDate(value);
 }
