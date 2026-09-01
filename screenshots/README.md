@@ -10,6 +10,10 @@ Figma 파일: https://www.figma.com/design/lnQi0U1HDFLD7H5U7ifGfC
 | `04-settings/` | 04_설정 | light / dark |
 | `05-stats/` | 05_통계, 05_통계_빈상태 | light / dark / empty-light / empty-dark |
 | `06-battery/` | 06_배터리_안내 (권한 직후 안내 다이얼로그) | light / dark |
+| `07-detail/` | 07_구독상세 | light / dark |
+| `08-edit/` | 08_수정폼 | light / dark |
+| `09-permission/` | 09_알림권한_안내 (다이얼로그) | light / dark |
+| `10-cancel/` | 10_해지확인 (다이얼로그) | light / dark |
 
 - `light`/`dark` = 컬러 모드 (Figma Variables 모드 토글)
 - 뷰포트(393×852) 기준 캡처라 스크롤 영역 하단 카드는 잘려 있을 수 있음
