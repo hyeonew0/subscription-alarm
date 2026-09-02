@@ -43,23 +43,40 @@
   - 공용화: SectionCard(heading+구분선 카드) · EmptyStateCard(목록·통계 빈상태) — 상세·목록도 이걸 쓰도록 리팩터링
 - **화면 6종 전부 구현 완료 (홈·목록·등록·상세·수정·해지·설정·통계)**
 - 개인정보처리방침 (`docs/privacy.html`, GitHub Pages 호스팅 대상 — URL은 `src/lib/links.ts` PRIVACY_POLICY_URL, 설정 정보 카드에 링크 행)
-- 앱 아이콘·스플래시 적용 (assets/ 5종 익스포트, app.json: adaptiveIcon(#2563EB)+expo-splash-screen·expo-notifications 플러그인 — **네이티브 변경이라 다음 dev client 빌드부터 반영**)
-- 실기기 1차 검증 (dev build 577d4626 설치, 다크모드·통계·알림 정상) → 피드백 반영 1단계 완료:
-  - 스키마 v5: subscriptions.catalog_id·plan_label 추가. name은 서비스명만 저장("Claude Pro Pro" 원인이던 "${이름} ${플랜}" 조합 폐지), 표시할 때만 조합. 기존 행은 `src/db/migrations/v5CatalogSnapshot.ts`(동결 스냅샷, 수정 금지)로 이름 파싱 백필 — 플랜명은 알지만 금액이 다르면 plan_label='직접 입력', 매칭 실패면 둘 다 NULL
-  - 카탈로그 정리: 서비스명에서 플랜명 분리 (ChatGPT Plus→ChatGPT, Claude Pro→Claude, Gemini Advanced→Gemini, Perplexity Pro→Perplexity, 쿠팡 와우→쿠팡, 네이버플러스 멤버십→네이버플러스, 컬리멤버스→컬리, 배민클럽→배달의민족, 요기패스→요기요, X 프리미엄→X, 카카오톡 이모티콘 플러스→카카오톡, 네이버웹툰 쿠키→네이버웹툰). id도 chatgpt·claude·gemini·perplexity로 변경. 옛 이름은 aliases로 검색 유지. 테스트가 name이 플랜 라벨로 끝나지 않는지 전수 검사
-  - 금액 숨기기 기능 제거 (hidden prop·maskAmount·설정 토글 삭제, DB hide_amounts 키는 남지만 읽지 않음)
-  - USD 표기: 홈·목록·해지함 행은 "$20" / "≈28,000원"(micro·tertiary) / "서비스명 · D-N" 3줄, KRW는 2줄 그대로. 총액·통계·정렬은 KRW 환산 유지
-- AdMob 배너 (react-native-google-mobile-ads **16.3.4 고정** — 16.4+는 play-services-ads 25.4(Kotlin 2.3)라 SDK 57 Kotlin 2.1과 충돌해 EAS 빌드 실패(invertase #863). 올리려면 Expo SDK 업그레이드 후에. 홈·목록(2번째 카테고리 뒤)·설정·통계 최하단 4곳, 전면 광고 없음)
-  - `src/components/AdBanner.tsx`: 카드(tight, 좌우 패딩 0) 안에 ANCHORED_ADAPTIVE_BANNER를 onLayout 폭으로. 로드 실패·네이티브 모듈 없음·프로덕션 ID 없음이면 null 렌더(빈 카드 없음)
-  - `src/lib/ads.ts`: __DEV__는 라이브러리 TestIds.ADAPTIVE_BANNER(Google 공식 데모 단위), 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null — 출시 직전 AdMob 콘솔 발급 후 채울 것, TODO 주석**). app.json androidAppId도 **Google 샘플 앱 ID(3940256099942544~3347511713)라 출시 전 교체 + 재빌드 필수**
-  - require를 try/catch로 감싼 지연 로딩. dev build c356915c부터 네이티브 모듈 포함 → 테스트 광고 표시됨(**실기기 확인 대기**)
+- 실기기 1차 검증 (dev build 577d4626, 다크모드·통계·알림 정상)
+- 스키마 v5 (catalog_id, plan_label) — "Claude Pro Pro" 수정, 플랜 변경 시트, 서비스 변경 잠금
+  - name은 서비스명만 저장("${이름} ${플랜}" 조합 폐지), 표시할 때만 displayPlanLabel로 조합. 기존 행은 `src/db/migrations/v5CatalogSnapshot.ts`(동결 스냅샷, 수정 금지)로 이름 파싱 백필 — 플랜명은 알지만 금액이 다르면 plan_label='직접 입력', 매칭 실패면 둘 다 NULL
+  - 카탈로그 서비스명에서 플랜명 분리 (ChatGPT Plus→ChatGPT, Claude Pro→Claude 등 12종). id도 chatgpt·claude·gemini·perplexity로 변경, 옛 이름은 aliases. 테스트가 name이 플랜 라벨로 끝나지 않는지 전수 검사
+  - 카탈로그 연결 구독은 서비스명 읽기 전용 + [플랜 변경] 시트(같은 catalogId의 플랜 + '직접 입력'). 플랜 변경은 금액·통화·주기만 교체, anchor_date 유지
+- 금액 숨기기 기능 제거 (hidden prop·maskAmount·설정 토글 삭제, DB hide_amounts 키는 남지만 읽지 않음)
+- USD 표기 3줄 분리 (홈·목록·해지함 행: "$20" / "≈28,000원"(micro·tertiary) / "서비스명 · D-N", KRW는 2줄 그대로. 총액·통계·정렬은 KRW 환산 유지)
+- 앱 아이콘·스플래시 적용 (assets/ 5종, app.json: adaptiveIcon(#2563EB)+expo-splash-screen·expo-notifications 플러그인 설정 완료, dev build c356915c부터 반영)
+- AdMob 연동 (테스트 ID, 실제 ID는 출시 직전 교체)
+  - react-native-google-mobile-ads **16.3.4 고정** — 16.4+는 play-services-ads 25.4(Kotlin 2.3)라 SDK 57 Kotlin 2.1과 충돌해 EAS 빌드 실패(invertase #863). Expo SDK 업그레이드 후에만 올릴 것
+  - 배너 4곳(홈·목록 2번째 카테고리 뒤·설정·통계 최하단), 전면 광고 없음. `src/components/AdBanner.tsx`: 카드(tight, 좌우 패딩 0) 안에 ANCHORED_ADAPTIVE_BANNER를 onLayout 폭으로. 로드 실패·네이티브 모듈 없음·프로덕션 ID 없음이면 null 렌더
+  - `src/lib/ads.ts`: __DEV__는 TestIds.ADAPTIVE_BANNER, 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null, TODO**). app.json androidAppId도 **Google 샘플 앱 ID(3940256099942544~3347511713)** — 출시 전 둘 다 교체 + 재빌드 필수
   - 개인정보처리방침 권한 표에 인터넷·광고 ID 행 추가
-- dev client 재빌드 c356915c (아이콘·스플래시·알림 아이콘·AdMob SDK 반영)
-- 카탈로그 46종 가격 검증 → `docs/catalog-price-audit.md` (2026-09-02, 보고만·코드 미수정). 변경 필요 14건(어도비·게임 3종·MS365·iCloud·넷플 광고형·윌라·밀리·음원 3사 VAT·피그마·카카오), 구조 변경 12건(신세계 종료·Notion AI 폐지·웹툰 쿠키 모델링·라프텔 2종 등). **코드 반영 전 정책 결정 필요**: VAT 포함가 원칙·웹/인앱 기준·USD/KRW 청구 전환(ChatGPT)·폐기 항목의 catalog_id 처리 (보고서 5절)
+- dev client 재빌드 c356915c (아이콘·스플래시·알림 아이콘·AdMob SDK 반영, 실기기 확인 대기)
+- 카탈로그 46종 가격 검증 완료 → `notes/catalog-price-audit.md` (2026-09-02, 코드 미수정). 변경 필요 14건(어도비·게임 3종·MS365·iCloud·넷플 광고형·윌라·밀리·음원 3사·피그마·카카오), 구조 변경 12건(신세계 종료·Notion AI 폐지·웹툰 쿠키·라프텔 2종 등)
 
 ## 다음
-카탈로그 가격 반영(정책 결정 후) · 2단계 환율 자동 갱신(외부 API + 개인정보처리방침 수정 — 사용자 승인 대기) · 결제 원장(ledger, 당시 환율 보존) → 데이터 내보내기 · 전월 대비 증감
-- 실기기: 사용자 폰은 회사 MDM(Knox)이라 USB 디버깅·파일 전송 불가지만 APK 브라우저 다운로드 설치는 됨. Metro는 `npx expo start --tunnel`로 연결 (ngrok "remote gone away"로 실패할 때가 있음 — 재시도 또는 LAN)
+1. 카탈로그 가격 반영 — 아래 결정 4가지 먼저
+2. 새 EAS 빌드 → 실기기 최종 검증
+3. AdMob 실제 ID 발급·교체 (PROD_BANNER_UNIT_ID + app.json androidAppId, 재빌드)
+4. 스토어 등록 정보 작성
+
+### 카탈로그 반영 전 결정 4가지 (notes/catalog-price-audit.md 5절)
+1. **VAT 포함가 원칙** — 음원 3사(멜론·지니·플로) 불일치 원인. 실 결제액(VAT 포함) 기준 통일 권장
+2. **결제 채널 기준** — 웹/인앱 가격이 다른 서비스(카카오 3,900/5,700/6,900, 유튜브 14,900/19,500, 왓챠·라프텔·밀리). 웹 결제가로 통일 권장, 인앱 차이 안내 여부
+3. **USD→KRW 청구 전환** — ChatGPT 한국 신규는 KRW(Plus ₩29,000), Claude는 USD+VAT 10%($22). USD 유지 vs KRW 실청구액
+4. **폐기·종료 항목** — 신세계 유니버스(2026-12-31 종료)·Notion AI(애드온 폐지)·네이버웹툰 쿠키(정액 아님) 제거 시 기존 행의 catalog_id 처리 (findCatalogItem null → 직접 입력 취급되는지 확인)
+
+## 보류 (v1.1)
+- 환율 자동 갱신 (외부 API 연동 + 개인정보처리방침 수정)
+- 결제 원장 (ledger, 당시 환율 보존 → 전월 대비 증감, 월별 추이, 데이터 내보내기)
+
+## 실기기·빌드 메모
+- 사용자 폰은 회사 MDM(Knox)이라 USB 디버깅·파일 전송 불가지만 APK 브라우저 다운로드 설치는 됨. Metro는 `npx expo start --tunnel`로 연결 (ngrok "remote gone away"로 실패할 때가 있음 — 재시도 또는 LAN)
 - dev build APK: https://expo.dev/artifacts/eas/gjJ__WMzm9kKt-f1-KTQchBGCo7ouwkH_x4cssuozNw.apk (build c356915c, 2026-09-02)
 - EAS 로그 확인: `npx eas-cli build:view <id> --json` → logFiles URL은 brotli 압축 NDJSON
 
@@ -92,7 +109,7 @@
 - 컴포넌트: `src/components/` (Screen·Card·Fab·AppText·ServiceChip·SubscriptionRow(구독행 공용)·CurrencyToggle·CycleSegment·DateField·BottomSheet·register/*·home/*·list/*)
 - 홈·목록 로직: `src/domain/categoryStats.ts`(카테고리 집계·그룹핑·라벨) · `src/domain/listSort.ts`(목록 정렬 4종) · `src/theme/rowShades.ts`(셰이드: 혼합 카드 1→2→3 반복 computeRowShades, 단일 카테고리 선형 분배 distributeShades) · `date.ts daysUntil·formatCycleShort·formatCycleSchedule·formatKoreanFullDate` · `money.ts formatUsd` · `catalog.ts findCatalogItem·initialForSubscription·displayPlanLabel`
 - 라우트: `app/` (expo-router — (tabs)/·add/·subscription/[id]·debug)
-- 문서: `notes/notification-testing.md`(실기기 검증 기록·확인 방법) · `docs/`는 GitHub Pages 공개 폴더(privacy.html만)
+- 문서: `notes/notification-testing.md`(실기기 검증 기록·확인 방법) · `notes/catalog-price-audit.md`(가격 검증 보고) · `docs/`는 GitHub Pages 공개 폴더(privacy.html만 — 내부 문서는 notes/에)
 
 # Figma MCP 작업 주의사항
 
