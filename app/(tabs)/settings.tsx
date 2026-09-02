@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { AppState, Linking, Platform, View } from 'react-native';
-import { AdCard } from '../../src/components/home/AdCard';
+import { AdBanner } from '../../src/components/AdBanner';
 import { AppText } from '../../src/components/AppText';
 import { Card } from '../../src/components/Card';
 import { OptionSheet } from '../../src/components/form/OptionSheet';
@@ -250,7 +250,7 @@ export default function SettingsScreen() {
         )}
       </SettingsCard>
 
-      <AdCard />
+      <AdBanner />
 
       <OffsetsSheet
         visible={offsetsSheet}

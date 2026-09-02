@@ -2,6 +2,7 @@ import * as Notifications from 'expo-notifications';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo } from 'react';
 import { AppState, Platform } from 'react-native';
+import { initializeAds } from '../src/ads/mobileAds';
 import { getDb } from '../src/db/database';
 import { maybeRescheduleAll } from '../src/notifications/autoReschedule';
 import { registerBackgroundReschedule } from '../src/notifications/backgroundReschedule';
@@ -45,6 +46,9 @@ export default function RootLayout() {
     const appState = AppState.addEventListener('change', (state) => {
       if (state === 'active') maybeRescheduleAll(db, driver).catch(() => {});
     });
+
+    // AdMob SDK 초기화 (네이티브 모듈 없는 빌드면 no-op)
+    initializeAds().catch(() => {});
 
     // 일 1회 백그라운드 재예약 태스크
     registerBackgroundReschedule().catch(() => {});

@@ -49,9 +49,14 @@
   - 카탈로그 정리: 서비스명에서 플랜명 분리 (ChatGPT Plus→ChatGPT, Claude Pro→Claude, Gemini Advanced→Gemini, Perplexity Pro→Perplexity, 쿠팡 와우→쿠팡, 네이버플러스 멤버십→네이버플러스, 컬리멤버스→컬리, 배민클럽→배달의민족, 요기패스→요기요, X 프리미엄→X, 카카오톡 이모티콘 플러스→카카오톡, 네이버웹툰 쿠키→네이버웹툰). id도 chatgpt·claude·gemini·perplexity로 변경. 옛 이름은 aliases로 검색 유지. 테스트가 name이 플랜 라벨로 끝나지 않는지 전수 검사
   - 금액 숨기기 기능 제거 (hidden prop·maskAmount·설정 토글 삭제, DB hide_amounts 키는 남지만 읽지 않음)
   - USD 표기: 홈·목록·해지함 행은 "$20" / "≈28,000원"(micro·tertiary) / "서비스명 · D-N" 3줄, KRW는 2줄 그대로. 총액·통계·정렬은 KRW 환산 유지
+- AdMob 배너 (react-native-google-mobile-ads 16.5, 홈·목록(2번째 카테고리 뒤)·설정·통계 최하단 4곳, 전면 광고 없음)
+  - `src/components/AdBanner.tsx`: 카드(tight, 좌우 패딩 0) 안에 ANCHORED_ADAPTIVE_BANNER를 onLayout 폭으로. 로드 실패·네이티브 모듈 없음·프로덕션 ID 없음이면 null 렌더(빈 카드 없음)
+  - `src/ads/adConfig.ts`: __DEV__는 Google 샘플 단위, 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null — AdMob 콘솔 발급 후 채울 것**). app.json androidAppId도 **샘플 앱 ID(3940256099942544~3347511713)라 출시 전 교체 필수**
+  - `src/ads/mobileAds.ts`: require를 try/catch로 감싼 지연 로딩 — 현재 dev build 577d4626엔 네이티브 모듈이 없어 광고가 안 보이는 게 정상. **다음 dev client 빌드부터 테스트 광고 확인 가능**
+  - 개인정보처리방침 권한 표에 인터넷·광고 ID 행 추가
 
 ## 다음
-2단계 환율 자동 갱신(외부 API + 개인정보처리방침 수정 — 사용자 승인 대기) · 결제 원장(ledger, 당시 환율 보존) → AdMob 연동 · 데이터 내보내기 · 전월 대비 증감
+2단계 환율 자동 갱신(외부 API + 개인정보처리방침 수정 — 사용자 승인 대기) · 결제 원장(ledger, 당시 환율 보존) → 데이터 내보내기 · 전월 대비 증감 · dev client 재빌드(아이콘·AdMob 네이티브 반영)
 - 실기기: 사용자 폰은 회사 MDM(Knox)이라 USB 디버깅·파일 전송 불가지만 APK 브라우저 다운로드 설치는 됨. Metro는 `npx expo start --tunnel`로 연결
 - dev build APK: https://expo.dev/artifacts/eas/EcapukaMEbBBGSkiS_PrcbIdKuychWW1jt431oJ2ovE.apk (build 577d4626)
 
@@ -80,6 +85,7 @@
 - 알림: `src/notifications/scheduler.ts`(예약·오프셋) · `expoDriver.ts` · `battery.ts` · `autoReschedule.ts`(포그라운드 복구) · `backgroundReschedule.ts`(일 1회 태스크)
 - 카탈로그: `src/data/catalog.ts`(46종) · `src/data/catalogSearch.ts`(초성 검색·draft)
 - 테마: `src/theme/tokens.ts`(토큰·getCategoryChipColors) · `ThemeProvider.tsx` · `designTokens.ts`(DTCG 빌더, UPDATE_TOKENS=1로 JSON 재생성)
+- 광고: `src/ads/adConfig.ts`(단위 ID·resolveBannerUnitId) · `src/ads/mobileAds.ts`(지연 로딩·initializeAds) · `src/components/AdBanner.tsx`
 - 컴포넌트: `src/components/` (Screen·Card·Fab·AppText·ServiceChip·SubscriptionRow(구독행 공용)·CurrencyToggle·CycleSegment·DateField·BottomSheet·register/*·home/*·list/*)
 - 홈·목록 로직: `src/domain/categoryStats.ts`(카테고리 집계·그룹핑·라벨) · `src/domain/listSort.ts`(목록 정렬 4종) · `src/theme/rowShades.ts`(셰이드: 혼합 카드 1→2→3 반복 computeRowShades, 단일 카테고리 선형 분배 distributeShades) · `date.ts daysUntil·formatCycleShort·formatCycleSchedule·formatKoreanFullDate` · `money.ts formatUsd` · `catalog.ts findCatalogItem·initialForSubscription·displayPlanLabel`
 - 라우트: `app/` (expo-router — (tabs)/·add/·subscription/[id]·debug)

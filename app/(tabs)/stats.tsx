@@ -5,7 +5,7 @@ import { View } from 'react-native';
 import { AppText } from '../../src/components/AppText';
 import { Card } from '../../src/components/Card';
 import { EmptyStateCard } from '../../src/components/EmptyStateCard';
-import { AdCard } from '../../src/components/home/AdCard';
+import { AdBanner } from '../../src/components/AdBanner';
 import { Screen } from '../../src/components/Screen';
 import { SectionCard } from '../../src/components/SectionCard';
 import { BillingHeatmap } from '../../src/components/stats/BillingHeatmap';
@@ -232,7 +232,7 @@ export default function StatsScreen() {
         </View>
       </SectionCard>
 
-      <AdCard />
+      <AdBanner />
     </Screen>
   );
 }

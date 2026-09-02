@@ -4,7 +4,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { AppText } from '../../src/components/AppText';
 import { Fab } from '../../src/components/Fab';
-import { AdCard } from '../../src/components/home/AdCard';
+import { AdBanner } from '../../src/components/AdBanner';
 import { CancelledCard } from '../../src/components/list/CancelledCard';
 import { CategoryGroupCard } from '../../src/components/list/CategoryGroupCard';
 import { EmptyList } from '../../src/components/list/EmptyList';
@@ -84,7 +84,7 @@ export default function ListScreen() {
   ));
   // 광고 카드는 2번째 카테고리 카드 뒤, 카드가 2개 미만이면 카테고리 카드들 맨 뒤
   const adIndex = Math.min(2, categoryCards.length);
-  categoryCards.splice(adIndex, 0, <AdCard key="ad" />);
+  categoryCards.splice(adIndex, 0, <AdBanner key="ad" />);
 
   return (
     <View style={{ flex: 1 }}>

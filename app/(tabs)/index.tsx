@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { AdCard } from '../../src/components/home/AdCard';
+import { AdBanner } from '../../src/components/AdBanner';
 import { CategoryCard } from '../../src/components/home/CategoryCard';
 import { EmptyHome } from '../../src/components/home/EmptyHome';
 import { TotalCard } from '../../src/components/home/TotalCard';
@@ -92,7 +92,7 @@ export default function HomeScreen() {
             <CategoryCard segments={data.segments} />
           </>
         )}
-        <AdCard />
+        <AdBanner />
       </Screen>
       <Fab />
     </View>
