@@ -51,8 +51,8 @@
   - USD 표기: 홈·목록·해지함 행은 "$20" / "≈28,000원"(micro·tertiary) / "서비스명 · D-N" 3줄, KRW는 2줄 그대로. 총액·통계·정렬은 KRW 환산 유지
 - AdMob 배너 (react-native-google-mobile-ads 16.5, 홈·목록(2번째 카테고리 뒤)·설정·통계 최하단 4곳, 전면 광고 없음)
   - `src/components/AdBanner.tsx`: 카드(tight, 좌우 패딩 0) 안에 ANCHORED_ADAPTIVE_BANNER를 onLayout 폭으로. 로드 실패·네이티브 모듈 없음·프로덕션 ID 없음이면 null 렌더(빈 카드 없음)
-  - `src/ads/adConfig.ts`: __DEV__는 Google 샘플 단위, 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null — AdMob 콘솔 발급 후 채울 것**). app.json androidAppId도 **샘플 앱 ID(3940256099942544~3347511713)라 출시 전 교체 필수**
-  - `src/ads/mobileAds.ts`: require를 try/catch로 감싼 지연 로딩 — 현재 dev build 577d4626엔 네이티브 모듈이 없어 광고가 안 보이는 게 정상. **다음 dev client 빌드부터 테스트 광고 확인 가능**
+  - `src/lib/ads.ts`: __DEV__는 라이브러리 TestIds.ADAPTIVE_BANNER(Google 공식 데모 단위), 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null — 출시 직전 AdMob 콘솔 발급 후 채울 것, TODO 주석**). app.json androidAppId도 **Google 샘플 앱 ID(3940256099942544~3347511713)라 출시 전 교체 + 재빌드 필수**
+  - require를 try/catch로 감싼 지연 로딩 — 현재 dev build 577d4626엔 네이티브 모듈이 없어 광고가 안 보이는 게 정상. **다음 dev client 빌드부터 테스트 광고 확인 가능**
   - 개인정보처리방침 권한 표에 인터넷·광고 ID 행 추가
 
 ## 다음
@@ -85,7 +85,7 @@
 - 알림: `src/notifications/scheduler.ts`(예약·오프셋) · `expoDriver.ts` · `battery.ts` · `autoReschedule.ts`(포그라운드 복구) · `backgroundReschedule.ts`(일 1회 태스크)
 - 카탈로그: `src/data/catalog.ts`(46종) · `src/data/catalogSearch.ts`(초성 검색·draft)
 - 테마: `src/theme/tokens.ts`(토큰·getCategoryChipColors) · `ThemeProvider.tsx` · `designTokens.ts`(DTCG 빌더, UPDATE_TOKENS=1로 JSON 재생성)
-- 광고: `src/ads/adConfig.ts`(단위 ID·resolveBannerUnitId) · `src/ads/mobileAds.ts`(지연 로딩·initializeAds) · `src/components/AdBanner.tsx`
+- 광고: `src/lib/ads.ts`(지연 로딩·initializeAds·getBannerUnitId·PROD_BANNER_UNIT_ID TODO) · `src/components/AdBanner.tsx`
 - 컴포넌트: `src/components/` (Screen·Card·Fab·AppText·ServiceChip·SubscriptionRow(구독행 공용)·CurrencyToggle·CycleSegment·DateField·BottomSheet·register/*·home/*·list/*)
 - 홈·목록 로직: `src/domain/categoryStats.ts`(카테고리 집계·그룹핑·라벨) · `src/domain/listSort.ts`(목록 정렬 4종) · `src/theme/rowShades.ts`(셰이드: 혼합 카드 1→2→3 반복 computeRowShades, 단일 카테고리 선형 분배 distributeShades) · `date.ts daysUntil·formatCycleShort·formatCycleSchedule·formatKoreanFullDate` · `money.ts formatUsd` · `catalog.ts findCatalogItem·initialForSubscription·displayPlanLabel`
 - 라우트: `app/` (expo-router — (tabs)/·add/·subscription/[id]·debug)
