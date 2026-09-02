@@ -49,16 +49,19 @@
   - 카탈로그 정리: 서비스명에서 플랜명 분리 (ChatGPT Plus→ChatGPT, Claude Pro→Claude, Gemini Advanced→Gemini, Perplexity Pro→Perplexity, 쿠팡 와우→쿠팡, 네이버플러스 멤버십→네이버플러스, 컬리멤버스→컬리, 배민클럽→배달의민족, 요기패스→요기요, X 프리미엄→X, 카카오톡 이모티콘 플러스→카카오톡, 네이버웹툰 쿠키→네이버웹툰). id도 chatgpt·claude·gemini·perplexity로 변경. 옛 이름은 aliases로 검색 유지. 테스트가 name이 플랜 라벨로 끝나지 않는지 전수 검사
   - 금액 숨기기 기능 제거 (hidden prop·maskAmount·설정 토글 삭제, DB hide_amounts 키는 남지만 읽지 않음)
   - USD 표기: 홈·목록·해지함 행은 "$20" / "≈28,000원"(micro·tertiary) / "서비스명 · D-N" 3줄, KRW는 2줄 그대로. 총액·통계·정렬은 KRW 환산 유지
-- AdMob 배너 (react-native-google-mobile-ads 16.5, 홈·목록(2번째 카테고리 뒤)·설정·통계 최하단 4곳, 전면 광고 없음)
+- AdMob 배너 (react-native-google-mobile-ads **16.3.4 고정** — 16.4+는 play-services-ads 25.4(Kotlin 2.3)라 SDK 57 Kotlin 2.1과 충돌해 EAS 빌드 실패(invertase #863). 올리려면 Expo SDK 업그레이드 후에. 홈·목록(2번째 카테고리 뒤)·설정·통계 최하단 4곳, 전면 광고 없음)
   - `src/components/AdBanner.tsx`: 카드(tight, 좌우 패딩 0) 안에 ANCHORED_ADAPTIVE_BANNER를 onLayout 폭으로. 로드 실패·네이티브 모듈 없음·프로덕션 ID 없음이면 null 렌더(빈 카드 없음)
   - `src/lib/ads.ts`: __DEV__는 라이브러리 TestIds.ADAPTIVE_BANNER(Google 공식 데모 단위), 프로덕션은 PROD_BANNER_UNIT_ID(**현재 null — 출시 직전 AdMob 콘솔 발급 후 채울 것, TODO 주석**). app.json androidAppId도 **Google 샘플 앱 ID(3940256099942544~3347511713)라 출시 전 교체 + 재빌드 필수**
-  - require를 try/catch로 감싼 지연 로딩 — 현재 dev build 577d4626엔 네이티브 모듈이 없어 광고가 안 보이는 게 정상. **다음 dev client 빌드부터 테스트 광고 확인 가능**
+  - require를 try/catch로 감싼 지연 로딩. dev build c356915c부터 네이티브 모듈 포함 → 테스트 광고 표시됨(**실기기 확인 대기**)
   - 개인정보처리방침 권한 표에 인터넷·광고 ID 행 추가
+- dev client 재빌드 c356915c (아이콘·스플래시·알림 아이콘·AdMob SDK 반영)
+- 카탈로그 46종 가격 검증 → `docs/catalog-price-audit.md` (2026-09-02, 보고만·코드 미수정). 변경 필요 14건(어도비·게임 3종·MS365·iCloud·넷플 광고형·윌라·밀리·음원 3사 VAT·피그마·카카오), 구조 변경 12건(신세계 종료·Notion AI 폐지·웹툰 쿠키 모델링·라프텔 2종 등). **코드 반영 전 정책 결정 필요**: VAT 포함가 원칙·웹/인앱 기준·USD/KRW 청구 전환(ChatGPT)·폐기 항목의 catalog_id 처리 (보고서 5절)
 
 ## 다음
-2단계 환율 자동 갱신(외부 API + 개인정보처리방침 수정 — 사용자 승인 대기) · 결제 원장(ledger, 당시 환율 보존) → 데이터 내보내기 · 전월 대비 증감 · dev client 재빌드(아이콘·AdMob 네이티브 반영)
-- 실기기: 사용자 폰은 회사 MDM(Knox)이라 USB 디버깅·파일 전송 불가지만 APK 브라우저 다운로드 설치는 됨. Metro는 `npx expo start --tunnel`로 연결
-- dev build APK: https://expo.dev/artifacts/eas/EcapukaMEbBBGSkiS_PrcbIdKuychWW1jt431oJ2ovE.apk (build 577d4626)
+카탈로그 가격 반영(정책 결정 후) · 2단계 환율 자동 갱신(외부 API + 개인정보처리방침 수정 — 사용자 승인 대기) · 결제 원장(ledger, 당시 환율 보존) → 데이터 내보내기 · 전월 대비 증감
+- 실기기: 사용자 폰은 회사 MDM(Knox)이라 USB 디버깅·파일 전송 불가지만 APK 브라우저 다운로드 설치는 됨. Metro는 `npx expo start --tunnel`로 연결 (ngrok "remote gone away"로 실패할 때가 있음 — 재시도 또는 LAN)
+- dev build APK: https://expo.dev/artifacts/eas/gjJ__WMzm9kKt-f1-KTQchBGCo7ouwkH_x4cssuozNw.apk (build c356915c, 2026-09-02)
+- EAS 로그 확인: `npx eas-cli build:view <id> --json` → logFiles URL은 brotli 압축 NDJSON
 
 ## Figma
 - 디자인 파일: https://www.figma.com/design/lnQi0U1HDFLD7H5U7ifGfC (fileKey `lnQi0U1HDFLD7H5U7ifGfC`)
