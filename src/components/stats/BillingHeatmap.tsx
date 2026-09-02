@@ -22,12 +22,10 @@ function chunk<T>(arr: T[], size: number): T[][] {
 export interface BillingHeatmapProps {
   buckets: DayBucket[];
   peak: DayBucket | null;
-  /** hide_amounts 설정 (요약 금액 마스킹) */
-  hidden: boolean;
 }
 
 /** 결제일 분포 달력 히트맵 (05_통계): 7열 1~31일 + 요약 + 범례 */
-export function BillingHeatmap({ buckets, peak, hidden }: BillingHeatmapProps) {
+export function BillingHeatmap({ buckets, peak }: BillingHeatmapProps) {
   const { theme } = useTheme();
   const byDay = new Map(buckets.map((b) => [b.day, b]));
   // 마지막 행을 7칸으로 채우기 위한 빈 셀 (32~35)
@@ -35,7 +33,7 @@ export function BillingHeatmap({ buckets, peak, hidden }: BillingHeatmapProps) {
 
   const summary =
     peak &&
-    `${peak.names.slice(0, 2).join(', ')}${peak.count > 2 ? ' 등' : ''} ${peak.count}건 · ${formatKrw(peak.amount, hidden)}`;
+    `${peak.names.slice(0, 2).join(', ')}${peak.count > 2 ? ' 등' : ''} ${peak.count}건 · ${formatKrw(peak.amount)}`;
 
   return (
     <View style={{ gap: theme.card.gap }}>

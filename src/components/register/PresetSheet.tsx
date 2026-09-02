@@ -61,6 +61,8 @@ export function PresetSheet({
         currency: draft.currency,
         cycle: draft.cycle ?? item.plans[planIndex].cycle,
         cycleCount: draft.cycleCount,
+        catalogId: draft.catalogId,
+        planLabel: draft.planLabel,
         anchorDate: `${date.year.toString().padStart(4, '0')}-${String(date.month).padStart(2, '0')}-${String(date.day).padStart(2, '0')}`,
       },
       item.name,

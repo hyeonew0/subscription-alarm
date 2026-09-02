@@ -12,14 +12,12 @@ import { SubscriptionRow } from '../SubscriptionRow';
 export interface CancelledCardProps {
   subs: Subscription[];
   usdRate: number;
-  /** hide_amounts 설정 */
-  hidden: boolean;
   /** true가 되면 펼친 상태로 (설정 → 해지함 진입용) */
   initialExpanded?: boolean;
 }
 
 /** 해지함 카드 (Figma 02_목록 card-해지함): 탭하면 CANCELLED 목록 확장/축소 */
-export function CancelledCard({ subs, usdRate, hidden, initialExpanded }: CancelledCardProps) {
+export function CancelledCard({ subs, usdRate, initialExpanded }: CancelledCardProps) {
   const { theme } = useTheme();
   const [expanded, setExpanded] = useState(initialExpanded ?? false);
   useEffect(() => {
@@ -59,7 +57,6 @@ export function CancelledCard({ subs, usdRate, hidden, initialExpanded }: Cancel
               sub={sub}
               shade={shades[i]}
               usdRate={usdRate}
-              hidden={hidden}
               statusText="해지됨"
             />
           ))}

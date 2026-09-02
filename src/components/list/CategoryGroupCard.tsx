@@ -12,12 +12,10 @@ import { SubscriptionRow } from '../SubscriptionRow';
 export interface CategoryGroupCardProps {
   group: CategoryGroup<Subscription>;
   usdRate: number;
-  /** hide_amounts 설정 */
-  hidden: boolean;
 }
 
 /** 카테고리별 구독 카드 (Figma 02_목록 card-<카테고리>): 헤더(소계·개수) + 구분선 + 구독행 */
-export function CategoryGroupCard({ group, usdRate, hidden }: CategoryGroupCardProps) {
+export function CategoryGroupCard({ group, usdRate }: CategoryGroupCardProps) {
   const { theme } = useTheme();
   const shades = distributeShades(group.items.length);
   return (
@@ -36,7 +34,7 @@ export function CategoryGroupCard({ group, usdRate, hidden }: CategoryGroupCardP
             </AppText>
             <AppText variant="caption" color="tertiary">
               <AppText variant="caption" color="secondary" style={{ fontWeight: '600' }}>
-                {formatKrw(group.monthlyAmount, hidden)}
+                {formatKrw(group.monthlyAmount)}
               </AppText>
               {` · ${group.items.length}개`}
             </AppText>
@@ -50,7 +48,6 @@ export function CategoryGroupCard({ group, usdRate, hidden }: CategoryGroupCardP
               sub={sub}
               shade={shades[i]}
               usdRate={usdRate}
-              hidden={hidden}
             />
           ))}
         </View>

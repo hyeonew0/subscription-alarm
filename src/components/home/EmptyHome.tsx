@@ -12,7 +12,7 @@ import { ServiceChip } from '../ServiceChip';
 const QUICK_START_IDS = [
   'netflix',
   'coupang-wow',
-  'chatgpt-plus',
+  'chatgpt',
   'youtube-premium',
   'melon',
   'tving',

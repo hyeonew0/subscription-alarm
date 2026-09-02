@@ -12,12 +12,10 @@ export interface TotalCardProps {
   yearlyTotal: number;
   /** ACTIVE 구독 수 */
   count: number;
-  /** hide_amounts 설정 */
-  hidden: boolean;
 }
 
 /** 홈 총액 카드 (Figma 01_홈 card-total) */
-export function TotalCard({ monthlyTotal, yearlyTotal, count, hidden }: TotalCardProps) {
+export function TotalCard({ monthlyTotal, yearlyTotal, count }: TotalCardProps) {
   const { theme } = useTheme();
   return (
     <Card variant="tight">
@@ -27,10 +25,10 @@ export function TotalCard({ monthlyTotal, yearlyTotal, count, hidden }: TotalCar
             <AppText variant="caption" color="secondary">
               이번 달 구독료
             </AppText>
-            <AppText variant="display">{formatKrw(monthlyTotal, hidden)}</AppText>
+            <AppText variant="display">{formatKrw(monthlyTotal)}</AppText>
           </View>
           <AppText variant="caption" color="tertiary">
-            연 {formatKrw(yearlyTotal, hidden)}
+            연 {formatKrw(yearlyTotal)}
           </AppText>
         </View>
         <View style={{ gap: 2 }}>

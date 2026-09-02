@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AMOUNT_MASK, formatAmount, formatKrw, maskAmount, parseAmountInput, previewKrw } from '../src/domain/money';
-import { getHideAmounts, setHideAmounts } from '../src/repos/settingsRepo';
-import { createTestDb } from './testDb';
+import { formatAmount, formatKrw, parseAmountInput, previewKrw } from '../src/domain/money';
 
 const RATE = 1400;
 
@@ -46,29 +44,6 @@ describe('parseAmountInput', () => {
     expect(parseAmountInput('20.999', 'USD')).toBeNull(); // 소수 3자리 불가
     expect(parseAmountInput('20.', 'USD')).toBeNull();
     expect(parseAmountInput('-5', 'KRW')).toBeNull();
-  });
-});
-
-describe('금액 숨기기', () => {
-  it('maskAmount: hidden이면 마스크, 아니면 원본', () => {
-    expect(maskAmount('13,500원', true)).toBe(AMOUNT_MASK);
-    expect(maskAmount('13,500원', false)).toBe('13,500원');
-  });
-
-  it('formatAmount/formatKrw가 hidden 인자를 거친다', () => {
-    expect(formatAmount({ amount: 2000, currency: 'USD' }, RATE, true)).toBe(AMOUNT_MASK);
-    expect(formatAmount({ amount: 13500, currency: 'KRW' }, RATE, true)).toBe(AMOUNT_MASK);
-    expect(formatKrw(13500, true)).toBe(AMOUNT_MASK);
-    expect(formatAmount({ amount: 13500, currency: 'KRW' }, RATE, false)).toBe('13,500원');
-  });
-
-  it('settings hide_amounts: 기본 false, setter로 토글', () => {
-    const db = createTestDb();
-    expect(getHideAmounts(db)).toBe(false);
-    setHideAmounts(db, true);
-    expect(getHideAmounts(db)).toBe(true);
-    setHideAmounts(db, false);
-    expect(getHideAmounts(db)).toBe(false);
   });
 });
 

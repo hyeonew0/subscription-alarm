@@ -11,11 +11,11 @@ import { CheckRow } from '../../../src/components/form/CheckRow';
 import { FieldLabel, FormTextInput } from '../../../src/components/form/FormField';
 import { OptionSheet } from '../../../src/components/form/OptionSheet';
 import { Screen } from '../../../src/components/Screen';
-import { CATALOG, planLabelFor } from '../../../src/data/catalog';
+import { findCatalogItem } from '../../../src/data/catalog';
 import { formatYMD, parseISODate, type YMD } from '../../../src/domain/date';
 import { offsetLabel } from '../../../src/domain/offsets';
 import { formatAmount, formatKrw, parseAmountInput } from '../../../src/domain/money';
-import type { Currency, Cycle } from '../../../src/domain/types';
+import { MANUAL_PLAN_LABEL, type Currency, type Cycle } from '../../../src/domain/types';
 import { getDb } from '../../../src/db/database';
 import { showToast } from '../../../src/lib/toast';
 import { createExpoNotificationDriver } from '../../../src/notifications/expoDriver';
@@ -52,7 +52,12 @@ export default function SubscriptionEditScreen() {
   // 수정 대상 스냅샷. 폼이 열려 있는 동안 원본이 바뀔 일은 없다 (단일 사용자 로컬 DB)
   const sub = useMemo(() => (id ? getSubscription(db, id) : null), [db, id]);
 
+  // 카탈로그 연결 구독: 서비스명 고정, 금액은 플랜 선택으로만(직접 입력 선택 시 열림)
+  const catalogItem = useMemo(() => findCatalogItem(sub?.catalogId ?? null), [sub?.catalogId]);
+  const linked = catalogItem !== null;
+
   const [name, setName] = useState(sub?.name ?? '');
+  const [planLabel, setPlanLabel] = useState<string | null>(sub?.planLabel ?? null);
   const [category, setCategory] = useState(sub?.category ?? 'ETC');
   const [amountText, setAmountText] = useState(
     sub ? amountToText(sub.amount, sub.currency) : '',
@@ -75,6 +80,7 @@ export default function SubscriptionEditScreen() {
   const dirty =
     sub !== null &&
     (name !== sub.name ||
+      planLabel !== sub.planLabel ||
       category !== sub.category ||
       amountText !== amountToText(sub.amount, sub.currency) ||
       currency !== sub.currency ||
@@ -105,19 +111,28 @@ export default function SubscriptionEditScreen() {
     });
   }, [navigation]);
 
-  // 카탈로그 서비스면 플랜 선택 제공
-  const catalogItem = useMemo(() => CATALOG.find((i) => i.name === name), [name]);
-  const currentPlanLabel =
-    parsedAmount !== null && sub
-      ? planLabelFor({ name, amount: parsedAmount, currency, cycle, cycleCount: sub.cycleCount })
-      : null;
+  // 선택된 카탈로그 플랜. 없으면(직접 입력·구버전 라벨) 금액 필드를 연다
+  const selectedPlan = linked ? (catalogItem.plans.find((p) => p.label === planLabel) ?? null) : null;
+  const manualAmount = !linked || selectedPlan === null;
 
-  const applyPlan = (index: number) => {
-    const plan = catalogItem?.plans[index];
+  /** 플랜 변경: 금액·통화·주기만 교체하고 anchor_date(다음 결제일)는 그대로 둔다 */
+  const applyPlan = (value: string) => {
+    if (value === MANUAL_PLAN_LABEL) {
+      setPlanLabel(MANUAL_PLAN_LABEL);
+      return;
+    }
+    const plan = catalogItem?.plans.find((p) => p.label === value);
     if (!plan) return;
+    setPlanLabel(plan.label);
     setAmountText(amountToText(plan.amount, plan.currency));
     setCurrency(plan.currency);
     setCycle(plan.cycle);
+  };
+
+  /** 플랜이 정한 주기를 손으로 바꾸면 더 이상 그 플랜이 아니므로 직접 입력으로 전환 */
+  const changeCycle = (next: Cycle) => {
+    setCycle(next);
+    if (selectedPlan && selectedPlan.cycle !== next) setPlanLabel(MANUAL_PLAN_LABEL);
   };
 
   const toggleOffset = (offset: number) => {
@@ -159,6 +174,7 @@ export default function SubscriptionEditScreen() {
         cycle,
         memo: memo.trim() === '' ? null : memo.trim(),
         notifyOffsets: useDefaultNotify ? null : [...customOffsets].sort((a, b) => b - a),
+        ...(linked ? { planLabel: planLabel ?? MANUAL_PLAN_LABEL } : {}),
         ...(dateTouched ? { anchorDate: formatYMD(date) } : {}),
       });
       // 금액·주기·결제일이 바뀌면 기존 예약이 무효 — 반드시 재예약
@@ -223,7 +239,24 @@ export default function SubscriptionEditScreen() {
         <View style={{ gap: theme.card.padding }}>
           <View style={{ gap: theme.spacing.sm }}>
             <FieldLabel>서비스명</FieldLabel>
-            <FormTextInput value={name} onChangeText={setName} placeholder="예: 넷플릭스" />
+            {linked ? (
+              // 다른 서비스로 바꾸는 건 막는다 (잘못 등록했으면 해지 후 재등록)
+              <View
+                style={{
+                  height: 52,
+                  borderRadius: theme.radius.md,
+                  backgroundColor: theme.colors.bg.canvas,
+                  paddingHorizontal: theme.spacing.lg,
+                  justifyContent: 'center',
+                }}
+              >
+                <AppText variant="body" color="secondary">
+                  {name}
+                </AppText>
+              </View>
+            ) : (
+              <FormTextInput value={name} onChangeText={setName} placeholder="예: 넷플릭스" />
+            )}
           </View>
           <View style={{ gap: theme.spacing.sm }}>
             <FieldLabel>카테고리</FieldLabel>
@@ -246,11 +279,17 @@ export default function SubscriptionEditScreen() {
               <Feather name="chevron-down" size={12} color={theme.colors.text.tertiary} />
             </Pressable>
           </View>
-          {catalogItem && catalogItem.plans.length > 0 && (
-            <View style={{ gap: theme.spacing.sm }}>
+        </View>
+      </Card>
+
+      <Card>
+        <View style={{ gap: theme.spacing.sm }}>
+          {linked && (
+            <>
               <FieldLabel>플랜</FieldLabel>
               <Pressable
                 accessibilityRole="button"
+                accessibilityLabel="플랜 변경"
                 onPress={() => setPlanSheet(true)}
                 style={{
                   height: 52,
@@ -262,9 +301,31 @@ export default function SubscriptionEditScreen() {
                   justifyContent: 'space-between',
                 }}
               >
-                <AppText variant="body">{currentPlanLabel ?? '직접 입력'}</AppText>
-                <Feather name="chevron-down" size={12} color={theme.colors.text.tertiary} />
+                <AppText variant="body">
+                  {selectedPlan
+                    ? `${selectedPlan.label} · ${formatAmount(selectedPlan, usdRate)}`
+                    : MANUAL_PLAN_LABEL}
+                </AppText>
+                <AppText variant="caption" color="brand" style={{ fontWeight: '600' }}>
+                  플랜 변경
+                </AppText>
               </Pressable>
+            </>
+          )}
+          {manualAmount && (
+            <View style={{ gap: theme.spacing.sm, paddingTop: linked ? theme.spacing.md : 0 }}>
+              <FieldLabel>금액</FieldLabel>
+              <AmountRow
+                amountText={amountText}
+                onAmountText={setAmountText}
+                currency={currency}
+                onCurrency={setCurrency}
+              />
+              {preview !== null && (
+                <AppText variant="micro" color="tertiary">
+                  {preview}
+                </AppText>
+              )}
             </View>
           )}
         </View>
@@ -272,25 +333,8 @@ export default function SubscriptionEditScreen() {
 
       <Card>
         <View style={{ gap: theme.spacing.sm }}>
-          <FieldLabel>금액</FieldLabel>
-          <AmountRow
-            amountText={amountText}
-            onAmountText={setAmountText}
-            currency={currency}
-            onCurrency={setCurrency}
-          />
-          {preview !== null && (
-            <AppText variant="micro" color="tertiary">
-              {preview}
-            </AppText>
-          )}
-        </View>
-      </Card>
-
-      <Card>
-        <View style={{ gap: theme.spacing.sm }}>
           <FieldLabel>결제 주기</FieldLabel>
-          <CycleSegment value={cycle} onChange={setCycle} />
+          <CycleSegment value={cycle} onChange={changeCycle} />
           <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.md }}>
             <FieldLabel>다음 결제일</FieldLabel>
             <DateField value={date} onChange={setDate} />
@@ -345,17 +389,16 @@ export default function SubscriptionEditScreen() {
       <OptionSheet
         visible={planSheet}
         title="플랜"
-        options={(catalogItem?.plans ?? []).map((plan, i) => ({
-          value: String(i),
-          label: plan.label,
-          detail: formatAmount({ amount: plan.amount, currency: plan.currency }, usdRate),
-        }))}
-        selected={
-          currentPlanLabel
-            ? String(catalogItem?.plans.findIndex((p) => p.label === currentPlanLabel) ?? -1)
-            : null
-        }
-        onSelect={(v) => applyPlan(Number(v))}
+        options={[
+          ...(catalogItem?.plans ?? []).map((plan) => ({
+            value: plan.label,
+            label: plan.label,
+            detail: formatAmount(plan, usdRate),
+          })),
+          { value: MANUAL_PLAN_LABEL, label: MANUAL_PLAN_LABEL },
+        ]}
+        selected={selectedPlan ? selectedPlan.label : MANUAL_PLAN_LABEL}
+        onSelect={applyPlan}
         onClose={() => setPlanSheet(false)}
       />
     </Screen>

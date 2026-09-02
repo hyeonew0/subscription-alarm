@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  AMOUNT_MASK,
   formatUsd,
   toBaseAmount,
   toMonthly,
@@ -85,9 +84,5 @@ describe('formatUsd — 홈 구독행 표시', () => {
 
   it('달러부는 천 단위 그루핑한다', () => {
     expect(formatUsd(123456)).toBe('$1,234.56');
-  });
-
-  it('hidden이면 마스크를 반환한다', () => {
-    expect(formatUsd(2000, true)).toBe(AMOUNT_MASK);
   });
 });

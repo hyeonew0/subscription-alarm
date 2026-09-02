@@ -77,6 +77,7 @@ export function searchCatalog(query: string): CatalogItem[] {
 
 /**
  * 카탈로그 항목 + 선택 플랜 → 등록 폼 초기값.
+ * name은 서비스명만, 플랜은 catalogId·planLabel로 따로 간다 (표시할 때만 조합).
  * anchor_date는 사용자가 지정하므로 비워둔다.
  */
 export function catalogToDraft(item: CatalogItem, planIndex = 0): Partial<Subscription> {
@@ -85,7 +86,9 @@ export function catalogToDraft(item: CatalogItem, planIndex = 0): Partial<Subscr
     throw new Error(`Catalog item ${item.id} has no plan at index ${planIndex}`);
   }
   return {
-    name: item.plans.length > 1 ? `${item.name} ${plan.label}` : item.name,
+    name: item.name,
+    catalogId: item.id,
+    planLabel: plan.label,
     category: item.category,
     amount: plan.amount,
     currency: plan.currency,

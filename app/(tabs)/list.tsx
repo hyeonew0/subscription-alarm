@@ -20,7 +20,7 @@ import { LIST_SORT_LABELS, sortForList, type ListSort } from '../../src/domain/l
 import type { Subscription } from '../../src/domain/types';
 import { getDb } from '../../src/db/database';
 import type { SqlDb } from '../../src/db/adapter';
-import { getHideAmounts, getUsdRate } from '../../src/repos/settingsRepo';
+import { getUsdRate } from '../../src/repos/settingsRepo';
 import { listSubscriptions } from '../../src/repos/subscriptionRepo';
 import { useTheme } from '../../src/theme/ThemeProvider';
 
@@ -29,7 +29,6 @@ interface ListData {
   groups: Array<CategoryGroup<Subscription>>;
   cancelled: Subscription[];
   usdRate: number;
-  hidden: boolean;
 }
 
 function loadListData(db: SqlDb): ListData {
@@ -38,7 +37,6 @@ function loadListData(db: SqlDb): ListData {
     groups: groupByCategory(listSubscriptions(db, { status: 'ACTIVE' }), usdRate),
     cancelled: listSubscriptions(db, { status: 'CANCELLED' }),
     usdRate,
-    hidden: getHideAmounts(db),
   };
 }
 
@@ -81,7 +79,7 @@ export default function ListScreen() {
       key={group.category}
       onLayout={(e) => cardOffsets.current.set(group.category, e.nativeEvent.layout.y)}
     >
-      <CategoryGroupCard group={group} usdRate={data.usdRate} hidden={data.hidden} />
+      <CategoryGroupCard group={group} usdRate={data.usdRate} />
     </View>
   ));
   // 광고 카드는 2번째 카테고리 카드 뒤, 카드가 2개 미만이면 카테고리 카드들 맨 뒤
@@ -168,7 +166,6 @@ export default function ListScreen() {
             <CancelledCard
               subs={data.cancelled}
               usdRate={data.usdRate}
-              hidden={data.hidden}
               initialExpanded={expandCancelled === '1'}
             />
           </>

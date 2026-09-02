@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Constants from 'expo-constants';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { AppState, Linking, Platform, Switch, View } from 'react-native';
+import { AppState, Linking, Platform, View } from 'react-native';
 import { AdCard } from '../../src/components/home/AdCard';
 import { AppText } from '../../src/components/AppText';
 import { Card } from '../../src/components/Card';
@@ -31,10 +31,8 @@ import {
 } from '../../src/notifications/scheduler';
 import {
   getDefaultNotifyOffsets,
-  getHideAmounts,
   getNotifyTime,
   getUsdRate,
-  setHideAmounts,
   setSetting,
   type NotifyTime,
 } from '../../src/repos/settingsRepo';
@@ -77,12 +75,11 @@ interface SettingsState {
   offsets: number[];
   time: NotifyTime;
   usdRate: number;
-  hidden: boolean;
   cancelledCount: number;
 }
 
 export default function SettingsScreen() {
-  const { theme, mode, setMode } = useTheme();
+  const { mode, setMode } = useTheme();
   const router = useRouter();
   const db = useMemo(() => getDb(), []);
   const driver = useMemo(() => createExpoNotificationDriver(), []);
@@ -92,7 +89,6 @@ export default function SettingsScreen() {
       offsets: getDefaultNotifyOffsets(db),
       time: getNotifyTime(db),
       usdRate: getUsdRate(db),
-      hidden: getHideAmounts(db),
       cancelledCount: listSubscriptions(db, { status: 'CANCELLED' }).length,
     }),
     [db],
@@ -145,11 +141,6 @@ export default function SettingsScreen() {
     setSetting(db, 'usd_rate_updated_at', new Date().toISOString());
     setState((s) => ({ ...s, usdRate: rate }));
     showToast('환율을 저장했어요');
-  };
-
-  const toggleHidden = (hidden: boolean) => {
-    setHideAmounts(db, hidden);
-    setState((s) => ({ ...s, hidden }));
   };
 
   const onPermissionPress = async () => {
@@ -216,20 +207,6 @@ export default function SettingsScreen() {
           value={formatKrw(state.usdRate)}
           chevron
           onPress={() => setRateSheet(true)}
-        />
-        <SettingRow
-          label="금액 숨기기"
-          right={
-            <Switch
-              value={state.hidden}
-              onValueChange={toggleHidden}
-              trackColor={{
-                false: theme.colors.border.default,
-                true: theme.colors.brand.primary,
-              }}
-              thumbColor={theme.colors.bg.surface}
-            />
-          }
         />
       </SettingsCard>
 

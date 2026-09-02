@@ -34,7 +34,15 @@ describe('카탈로그 데이터 무결성', () => {
       // 센트라면 최소 100 이상이어야 정상. 20(=$0.20) 같은 달러값 오기를 잡는다
       expect(plan.amount, `${plan.id}/${plan.label}`).toBeGreaterThanOrEqual(100);
     }
-    expect(usdPlans.find((p) => p.id === 'chatgpt-plus')?.amount).toBe(2000); // $20.00
+    expect(usdPlans.find((p) => p.id === 'chatgpt')?.amount).toBe(2000); // $20.00
+  });
+
+  it('서비스명(name)이 자기 플랜 라벨로 끝나지 않는다 (플랜명은 plans[].label에만)', () => {
+    for (const item of CATALOG) {
+      for (const plan of item.plans) {
+        expect(item.name.endsWith(` ${plan.label}`), `${item.id}: "${item.name}" / ${plan.label}`).toBe(false);
+      }
+    }
   });
 
   it('color는 hex, initial은 1~2글자', () => {
@@ -77,9 +85,9 @@ describe('searchCatalog — 초성 검색', () => {
     expect(ids).toContain('netflix');
   });
 
-  it('"ㅋㄹㄷ" → Claude Pro (한글 별칭의 초성)', () => {
+  it('"ㅋㄹㄷ" → Claude (한글 별칭의 초성)', () => {
     const ids = searchCatalog('ㅋㄹㄷ').map((i) => i.id);
-    expect(ids).toContain('claude-pro');
+    expect(ids).toContain('claude');
   });
 });
 
@@ -136,11 +144,13 @@ describe('searchCatalog — 경계 케이스', () => {
 });
 
 describe('catalogToDraft', () => {
-  it('플랜이 여러 개면 이름에 플랜 라벨을 붙인다', () => {
+  it('name은 서비스명만, 플랜은 catalogId·planLabel로 분리된다', () => {
     const netflix = CATALOG.find((i) => i.id === 'netflix')!;
     const draft = catalogToDraft(netflix, 1);
     expect(draft).toMatchObject({
-      name: '넷플릭스 스탠다드',
+      name: '넷플릭스',
+      catalogId: 'netflix',
+      planLabel: '스탠다드',
       category: 'OTT',
       amount: 13500,
       currency: 'KRW',
@@ -150,13 +160,13 @@ describe('catalogToDraft', () => {
     expect(draft.anchorDate).toBeUndefined(); // 사용자 지정
   });
 
-  it('플랜이 1개면 서비스 이름 그대로', () => {
+  it('플랜이 1개여도 플랜명은 name에 섞이지 않는다', () => {
     const wow = CATALOG.find((i) => i.id === 'coupang-wow')!;
-    expect(catalogToDraft(wow).name).toBe('쿠팡 와우');
+    expect(catalogToDraft(wow)).toMatchObject({ name: '쿠팡', planLabel: '와우 멤버십' });
   });
 
   it('USD 플랜 draft', () => {
-    const chatgpt = CATALOG.find((i) => i.id === 'chatgpt-plus')!;
+    const chatgpt = CATALOG.find((i) => i.id === 'chatgpt')!;
     const draft = catalogToDraft(chatgpt, 0);
     expect(draft.amount).toBe(2000);
     expect(draft.currency).toBe('USD');

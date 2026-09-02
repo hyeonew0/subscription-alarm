@@ -110,6 +110,62 @@ describe('subscription CRUD', () => {
   });
 });
 
+describe('카탈로그 연결(catalogId·planLabel)', () => {
+  const claudePro = {
+    name: 'Claude',
+    category: 'AI',
+    amount: 2000,
+    currency: 'USD' as const,
+    cycle: 'MONTHLY' as const,
+    anchorDate: '2026-08-05',
+    catalogId: 'claude',
+    planLabel: 'Pro',
+  };
+
+  it('등록 시 name은 서비스명만, 플랜은 planLabel에 따로 저장된다', () => {
+    const db = createTestDb();
+    const sub = createSubscription(db, claudePro, NOW);
+    expect(sub).toMatchObject({ name: 'Claude', catalogId: 'claude', planLabel: 'Pro' });
+  });
+
+  it('직접 입력 구독(catalogId 없음)은 planLabel도 null로 정규화된다', () => {
+    const db = createTestDb();
+    const sub = createSubscription(
+      db,
+      { name: '동네 헬스장', category: 'ETC', amount: 50000, cycle: 'MONTHLY', anchorDate: '2026-08-05', planLabel: 'Pro' },
+      NOW,
+    );
+    expect(sub).toMatchObject({ catalogId: null, planLabel: null });
+  });
+
+  it("카탈로그 연결인데 planLabel을 생략하면 '직접 입력'", () => {
+    const db = createTestDb();
+    const sub = createSubscription(db, { ...claudePro, planLabel: undefined }, NOW);
+    expect(sub.planLabel).toBe('직접 입력');
+  });
+
+  it('플랜 변경(Pro→Max): 금액·주기만 바뀌고 anchor_date는 유지, next_billing_at은 anchor 기준 재계산', () => {
+    const db = createTestDb();
+    const sub = createSubscription(db, claudePro, NOW);
+    const updated = updateSubscription(db, sub.id, { planLabel: 'Max', amount: 10000 }, NOW);
+    expect(updated).toMatchObject({
+      name: 'Claude',
+      catalogId: 'claude',
+      planLabel: 'Max',
+      amount: 10000,
+      anchorDate: '2026-08-05',
+      nextBillingAt: '2026-09-05',
+    });
+  });
+
+  it('patch에 catalogId·planLabel이 없으면 기존 값을 보존한다', () => {
+    const db = createTestDb();
+    const sub = createSubscription(db, claudePro, NOW);
+    const updated = updateSubscription(db, sub.id, { memo: '메모' }, NOW);
+    expect(updated).toMatchObject({ catalogId: 'claude', planLabel: 'Pro' });
+  });
+});
+
 describe('getUpcoming', () => {
   it('오늘부터 N일 이내의 ACTIVE 구독만, 결제일 순으로 반환한다', () => {
     const db = createTestDb();

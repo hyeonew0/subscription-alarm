@@ -15,14 +15,12 @@ export interface UpcomingCardProps {
   /** 표시 순서대로 정렬된 구독 목록 */
   subs: Subscription[];
   usdRate: number;
-  /** hide_amounts 설정 */
-  hidden: boolean;
   sort: UpcomingSort;
   onSortChange: (sort: UpcomingSort) => void;
 }
 
 /** 다가오는 결제 통합 카드 (Figma 구독리스트카드): 구독행 + 정렬 필터 바 */
-export function UpcomingCard({ subs, usdRate, hidden, sort, onSortChange }: UpcomingCardProps) {
+export function UpcomingCard({ subs, usdRate, sort, onSortChange }: UpcomingCardProps) {
   const { theme } = useTheme();
   const router = useRouter();
   const shades = computeRowShades(subs.map((s) => toBuiltinCategory(s.category)));
@@ -52,7 +50,6 @@ export function UpcomingCard({ subs, usdRate, hidden, sort, onSortChange }: Upco
               sub={sub}
               shade={shades[i]}
               usdRate={usdRate}
-              hidden={hidden}
             />
           ))}
         </View>

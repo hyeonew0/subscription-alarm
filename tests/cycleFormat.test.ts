@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { planLabelFor } from '../src/data/catalog';
+import { displayPlanLabel, initialForSubscription } from '../src/data/catalog';
 import {
   formatCycleSchedule,
   formatCycleShort,
@@ -47,23 +47,32 @@ describe('formatKoreanFullDate', () => {
   });
 });
 
-describe('planLabelFor', () => {
-  it('이름·금액·주기가 일치하면 플랜 라벨을 반환한다', () => {
-    expect(
-      planLabelFor({ name: '넷플릭스', amount: 13500, currency: 'KRW', cycle: 'MONTHLY', cycleCount: 1 }),
-    ).toBe('스탠다드');
+describe('displayPlanLabel', () => {
+  it('저장된 플랜명을 그대로 반환한다', () => {
+    expect(displayPlanLabel({ planLabel: '스탠다드' })).toBe('스탠다드');
   });
 
-  it('금액이 다르면 null (사용자 수정 금액)', () => {
-    expect(
-      planLabelFor({ name: '넷플릭스', amount: 9900, currency: 'KRW', cycle: 'MONTHLY', cycleCount: 1 }),
-    ).toBeNull();
+  it("'직접 입력'(금액을 손수 고친 카탈로그 구독)이면 null", () => {
+    expect(displayPlanLabel({ planLabel: '직접 입력' })).toBeNull();
   });
 
-  it('카탈로그에 없는 이름이면 null', () => {
-    expect(
-      planLabelFor({ name: '동네 헬스장', amount: 50000, currency: 'KRW', cycle: 'MONTHLY', cycleCount: 1 }),
-    ).toBeNull();
+  it('직접 입력 구독(planLabel null)이면 null', () => {
+    expect(displayPlanLabel({ planLabel: null })).toBeNull();
+  });
+});
+
+describe('initialForSubscription', () => {
+  it('catalogId가 있으면 이름과 무관하게 카탈로그 이니셜', () => {
+    expect(initialForSubscription({ name: 'Claude', catalogId: 'claude' })).toBe('C');
+    expect(initialForSubscription({ name: '넷플릭스', catalogId: 'netflix' })).toBe('N');
+  });
+
+  it('catalogId가 없어도 이름이 카탈로그와 같으면 카탈로그 이니셜', () => {
+    expect(initialForSubscription({ name: '넷플릭스', catalogId: null })).toBe('N');
+  });
+
+  it('직접 입력은 첫 글자', () => {
+    expect(initialForSubscription({ name: '동네 헬스장', catalogId: null })).toBe('동');
   });
 });
 

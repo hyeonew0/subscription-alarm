@@ -24,7 +24,7 @@ import { formatKrw, toYearly } from '../../src/domain/money';
 import type { Subscription } from '../../src/domain/types';
 import { getDb } from '../../src/db/database';
 import type { SqlDb } from '../../src/db/adapter';
-import { getHideAmounts, getUsdRate } from '../../src/repos/settingsRepo';
+import { getUsdRate } from '../../src/repos/settingsRepo';
 import {
   getMonthlyTotal,
   getYearlyTotal,
@@ -44,7 +44,6 @@ interface StatsData {
   groups: Array<CategoryGroup<Subscription>>;
   mostExpensive: { name: string; yearly: number } | null;
   trialEndingSoon: number;
-  hidden: boolean;
 }
 
 function loadStats(db: SqlDb): StatsData {
@@ -74,7 +73,6 @@ function loadStats(db: SqlDb): StatsData {
         daysUntil(s.trialEndAt) >= 0 &&
         daysUntil(s.trialEndAt) <= TRIAL_SOON_DAYS,
     ).length,
-    hidden: getHideAmounts(db),
   };
 }
 
@@ -140,17 +138,17 @@ export default function StatsScreen() {
           <AppText variant="caption" color="secondary">
             연간 예상 지출
           </AppText>
-          <AppText variant="display">{formatKrw(data.yearlyTotal, data.hidden)}</AppText>
+          <AppText variant="display">{formatKrw(data.yearlyTotal)}</AppText>
           <View style={{ paddingTop: 2 }}>
             <AppText variant="caption" color="tertiary">
-              월 평균 {formatKrw(data.monthlyTotal, data.hidden)}
+              월 평균 {formatKrw(data.monthlyTotal)}
             </AppText>
           </View>
         </View>
       </Card>
 
       <SectionCard title="결제일 분포">
-        <BillingHeatmap buckets={data.dayBuckets} peak={data.peak} hidden={data.hidden} />
+        <BillingHeatmap buckets={data.dayBuckets} peak={data.peak} />
       </SectionCard>
 
       <SectionCard title="카테고리별">
@@ -175,7 +173,7 @@ export default function StatsScreen() {
                 <AppText variant="body">{CATEGORY_LABELS_KO[group.category]}</AppText>
               </View>
               <AppText variant="caption" color="secondary">
-                {formatKrw(group.monthlyAmount, data.hidden)} · {group.items.length}개
+                {formatKrw(group.monthlyAmount)} · {group.items.length}개
               </AppText>
             </View>
             <View
@@ -203,12 +201,12 @@ export default function StatsScreen() {
         {data.mostExpensive && (
           <InsightRow
             label="가장 비싼 구독"
-            value={`${data.mostExpensive.name} 연 ${formatKrw(data.mostExpensive.yearly, data.hidden)}`}
+            value={`${data.mostExpensive.name} 연 ${formatKrw(data.mostExpensive.yearly)}`}
           />
         )}
         <InsightRow
           label="구독당 평균"
-          value={`월 ${formatKrw(Math.round(data.monthlyTotal / data.activeCount), data.hidden)}`}
+          value={`월 ${formatKrw(Math.round(data.monthlyTotal / data.activeCount))}`}
         />
         {data.trialEndingSoon > 0 && (
           <InsightRow

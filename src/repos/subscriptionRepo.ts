@@ -8,7 +8,7 @@ import {
 } from '../domain/date';
 import { toMonthly, toYearly } from '../domain/money';
 import type { Currency, Cycle, Subscription, SubscriptionRow, SubscriptionStatus } from '../domain/types';
-import { rowToSubscription } from '../domain/types';
+import { MANUAL_PLAN_LABEL, rowToSubscription } from '../domain/types';
 import { getUsdRate } from './settingsRepo';
 import { uuid } from '../lib/uuid';
 
@@ -26,6 +26,10 @@ export interface CreateSubscriptionInput {
   memo?: string | null;
   /** 일 단위 알림 오프셋. null이면 settings 기본값 사용 */
   notifyOffsets?: number[] | null;
+  /** 카탈로그 항목 id. 직접 입력이면 null(기본) */
+  catalogId?: string | null;
+  /** 플랜명. catalogId가 있는데 생략하면 '직접 입력', catalogId가 없으면 항상 null */
+  planLabel?: string | null;
 }
 
 export type UpdateSubscriptionPatch = Partial<CreateSubscriptionInput>;
@@ -48,12 +52,14 @@ export function createSubscription(
     calcNextBilling(input.anchorDate, input.cycle, cycleCount, now),
   );
   const timestamp = now.toISOString();
+  const { catalogId, planLabel } = normalizePlan(input.catalogId ?? null, input.planLabel);
 
   db.runSync(
     `INSERT INTO subscriptions
        (id, name, category, amount, currency, cycle, cycle_count,
-        anchor_date, next_billing_at, status, trial_end_at, memo, notify_offsets, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        anchor_date, next_billing_at, status, trial_end_at, memo, notify_offsets,
+        catalog_id, plan_label, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       id,
       input.name,
@@ -68,11 +74,22 @@ export function createSubscription(
       input.trialEndAt ?? null,
       input.memo ?? null,
       input.notifyOffsets != null ? JSON.stringify(input.notifyOffsets) : null,
+      catalogId,
+      planLabel,
       timestamp,
       timestamp,
     ],
   );
   return mustGet(db, id);
+}
+
+/** catalogId가 없으면 planLabel은 의미가 없으므로 null, 있는데 비었으면 '직접 입력' */
+function normalizePlan(
+  catalogId: string | null,
+  planLabel: string | null | undefined,
+): { catalogId: string | null; planLabel: string | null } {
+  if (catalogId === null) return { catalogId: null, planLabel: null };
+  return { catalogId, planLabel: planLabel ?? MANUAL_PLAN_LABEL };
 }
 
 export function getSubscription(db: SqlDb, id: string): Subscription | null {
@@ -110,6 +127,10 @@ export function updateSubscription(
     memo: patch.memo !== undefined ? patch.memo : existing.memo,
     notifyOffsets:
       patch.notifyOffsets !== undefined ? patch.notifyOffsets : existing.notifyOffsets,
+    ...normalizePlan(
+      patch.catalogId !== undefined ? patch.catalogId : existing.catalogId,
+      patch.planLabel !== undefined ? patch.planLabel : existing.planLabel,
+    ),
   };
   const nextBillingAt = formatISODate(
     calcNextBilling(merged.anchorDate, merged.cycle, merged.cycleCount, now),
@@ -119,7 +140,7 @@ export function updateSubscription(
     `UPDATE subscriptions SET
        name = ?, category = ?, amount = ?, currency = ?, cycle = ?, cycle_count = ?,
        anchor_date = ?, next_billing_at = ?, status = ?, trial_end_at = ?, memo = ?,
-       notify_offsets = ?, updated_at = ?
+       notify_offsets = ?, catalog_id = ?, plan_label = ?, updated_at = ?
      WHERE id = ?`,
     [
       merged.name,
@@ -134,6 +155,8 @@ export function updateSubscription(
       merged.trialEndAt,
       merged.memo,
       merged.notifyOffsets != null ? JSON.stringify(merged.notifyOffsets) : null,
+      merged.catalogId,
+      merged.planLabel,
       now.toISOString(),
       id,
     ],

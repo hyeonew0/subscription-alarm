@@ -1,6 +1,9 @@
 /** 기본 제공 카테고리. category 컬럼은 커스텀 문자열도 허용한다. */
 export const BUILTIN_CATEGORIES = ['OTT', 'AI', 'SHOPPING', 'MUSIC', 'ETC'] as const;
 
+/** 카탈로그 연결 구독인데 금액을 플랜과 무관하게 직접 넣었을 때의 plan_label 값 */
+export const MANUAL_PLAN_LABEL = '직접 입력';
+
 export type Currency = 'KRW' | 'USD';
 export type Cycle = 'WEEKLY' | 'MONTHLY' | 'YEARLY';
 export type SubscriptionStatus = 'ACTIVE' | 'PAUSED' | 'CANCELLED';
@@ -24,6 +27,10 @@ export interface Subscription {
   memo: string | null;
   /** 결제일 며칠 전에 알릴지 (일 단위). null이면 settings의 default_notify_offsets 사용 */
   notifyOffsets: number[] | null;
+  /** 카탈로그 항목 id. 직접 입력 구독이면 null */
+  catalogId: string | null;
+  /** 선택한 플랜명. 카탈로그 연결이지만 금액을 직접 고쳤으면 '직접 입력', 직접 입력 구독이면 null */
+  planLabel: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -44,6 +51,8 @@ export interface SubscriptionRow {
   memo: string | null;
   /** JSON int 배열 문자열, 예: '[7,3]' */
   notify_offsets: string | null;
+  catalog_id: string | null;
+  plan_label: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -77,6 +86,8 @@ export function rowToSubscription(row: SubscriptionRow): Subscription {
     trialEndAt: row.trial_end_at,
     memo: row.memo,
     notifyOffsets: parseNotifyOffsets(row.notify_offsets),
+    catalogId: row.catalog_id,
+    planLabel: row.plan_label,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

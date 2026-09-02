@@ -1,5 +1,7 @@
 import type { SqlDb } from './adapter';
 import { formatISODate } from '../domain/date';
+import { MANUAL_PLAN_LABEL } from '../domain/types';
+import { V5_CATALOG_SNAPSHOT, type SnapshotPlan } from './migrations/v5CatalogSnapshot';
 
 /**
  * 설정 기본값. 값이 비거나 깨졌을 때의 폴백으로도 쓰인다.
@@ -61,9 +63,70 @@ CREATE INDEX IF NOT EXISTS idx_notification_map_subscription
   ON notification_map (subscription_id);
 `;
 
+const DDL_V5 = `
+ALTER TABLE subscriptions ADD COLUMN catalog_id TEXT NULL;
+ALTER TABLE subscriptions ADD COLUMN plan_label TEXT NULL;
+`;
+
 function seedSettings(db: SqlDb, entries: Record<string, string>): void {
   for (const [key, value] of Object.entries(entries)) {
     db.runSync('INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)', [key, value]);
+  }
+}
+
+function planMatches(plan: SnapshotPlan, row: V5Row): boolean {
+  return (
+    plan.amount === row.amount &&
+    plan.currency === row.currency &&
+    plan.cycle === row.cycle &&
+    (plan.cycleCount ?? 1) === row.cycle_count
+  );
+}
+
+interface V5Row {
+  id: string;
+  name: string;
+  amount: number;
+  currency: string;
+  cycle: string;
+  cycle_count: number;
+}
+
+/**
+ * v4까지의 name("넷플릭스 스탠다드", "Claude Pro Pro")을 동결 스냅샷으로 파싱해
+ * catalog_id·plan_label을 채우고 name은 서비스명만 남긴다.
+ * 이름이 스냅샷과 안 맞으면 직접 입력 취급(둘 다 NULL, name 유지).
+ * 플랜명은 알지만 금액을 사용자가 고쳤으면 '직접 입력'으로 둔다 (금액이 진실).
+ */
+function backfillCatalogV5(db: SqlDb): void {
+  // 이름 → (항목, 이름이 특정한 플랜 | null=금액으로 판별)
+  const byName = new Map<string, { item: (typeof V5_CATALOG_SNAPSHOT)[number]; plan: SnapshotPlan | null }>();
+  for (const item of V5_CATALOG_SNAPSHOT) {
+    for (const bare of [item.name, ...item.legacyNames]) {
+      if (!byName.has(bare)) byName.set(bare, { item, plan: null });
+    }
+    for (const plan of item.plans) {
+      for (const base of [item.name, ...item.legacyNames]) {
+        const full = `${base} ${plan.label}`;
+        if (!byName.has(full) || byName.get(full)!.plan === null) byName.set(full, { item, plan });
+      }
+    }
+  }
+
+  const rows = db.getAllSync<V5Row>(
+    'SELECT id, name, amount, currency, cycle, cycle_count FROM subscriptions',
+  );
+  for (const row of rows) {
+    const hit = byName.get(row.name);
+    if (!hit) continue;
+    const plan = hit.plan ?? hit.item.plans.find((p) => planMatches(p, row)) ?? null;
+    const label = plan && planMatches(plan, row) ? plan.label : MANUAL_PLAN_LABEL;
+    db.runSync('UPDATE subscriptions SET catalog_id = ?, plan_label = ?, name = ? WHERE id = ?', [
+      hit.item.id,
+      label,
+      hit.item.name,
+      row.id,
+    ]);
   }
 }
 
@@ -92,6 +155,10 @@ const MIGRATIONS: ReadonlyArray<(db: SqlDb, now: Date) => void> = [
   },
   function v4(db) {
     seedSettings(db, { hide_amounts: 'false' });
+  },
+  function v5(db) {
+    db.execSync(DDL_V5);
+    backfillCatalogV5(db);
   },
 ];
 

@@ -1,7 +1,9 @@
-import type { Currency, Cycle } from '../domain/types';
+import { MANUAL_PLAN_LABEL, type Currency, type Cycle } from '../domain/types';
 
 /**
  * 구독 서비스 프리셋 카탈로그. 정적 데이터 (DB/네트워크 아님).
+ * name은 서비스명만 — 플랜명(Pro/Plus/멤버십 등)은 plans[].label에만 둔다.
+ * id·name을 바꾸면 src/db/migrations/v5CatalogSnapshot.ts는 건드리지 말고 새 마이그레이션으로 처리.
  * amount는 최소 화폐단위 정수 (KRW=원, USD=센트. $20 = 2000).
  * 가격은 등록 폼에서 사용자가 수정하는 초기값이므로 정확도보다 커버리지 우선 —
  * 확신이 낮은 값에는 주석을 남겼다.
@@ -139,9 +141,9 @@ export const CATALOG: CatalogItem[] = [
 
   // ── AI ──────────────────────────────────────────────
   {
-    id: 'chatgpt-plus',
-    name: 'ChatGPT Plus',
-    aliases: ['챗지피티', '챗gpt', 'openai', 'gpt'],
+    id: 'chatgpt',
+    name: 'ChatGPT',
+    aliases: ['챗지피티', '챗gpt', 'openai', 'gpt', 'chatgpt plus'],
     category: 'AI',
     color: '#10A37F',
     initial: 'G',
@@ -151,9 +153,9 @@ export const CATALOG: CatalogItem[] = [
     ],
   },
   {
-    id: 'claude-pro',
-    name: 'Claude Pro',
-    aliases: ['클로드', 'anthropic'],
+    id: 'claude',
+    name: 'Claude',
+    aliases: ['클로드', 'anthropic', 'claude pro'],
     category: 'AI',
     color: '#D97757',
     initial: 'C',
@@ -163,9 +165,9 @@ export const CATALOG: CatalogItem[] = [
     ],
   },
   {
-    id: 'gemini-advanced',
-    name: 'Gemini Advanced',
-    aliases: ['제미나이', 'google ai pro', 'gemini'],
+    id: 'gemini',
+    name: 'Gemini',
+    aliases: ['제미나이', 'google ai pro', 'gemini advanced'],
     category: 'AI',
     color: '#4285F4',
     initial: 'G',
@@ -174,9 +176,9 @@ export const CATALOG: CatalogItem[] = [
     plans: [{ label: 'AI Pro', amount: 29000, currency: 'KRW', cycle: 'MONTHLY' }],
   },
   {
-    id: 'perplexity-pro',
-    name: 'Perplexity Pro',
-    aliases: ['퍼플렉시티'],
+    id: 'perplexity',
+    name: 'Perplexity',
+    aliases: ['퍼플렉시티', 'perplexity pro'],
     category: 'AI',
     color: '#20808D',
     initial: 'P',
@@ -229,8 +231,8 @@ export const CATALOG: CatalogItem[] = [
   // ── SHOPPING ────────────────────────────────────────
   {
     id: 'coupang-wow',
-    name: '쿠팡 와우',
-    aliases: ['coupang', '쿠팡', '와우 멤버십'],
+    name: '쿠팡',
+    aliases: ['coupang', '쿠팡 와우', '와우 멤버십'],
     category: 'SHOPPING',
     color: '#E52528',
     initial: '쿠',
@@ -238,8 +240,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'naver-plus',
-    name: '네이버플러스 멤버십',
-    aliases: ['naver plus', '네이버 멤버십', '네플멤'],
+    name: '네이버플러스',
+    aliases: ['naver plus', '네이버플러스 멤버십', '네이버 멤버십', '네플멤'],
     category: 'SHOPPING',
     color: '#03C75A',
     initial: '네이',
@@ -256,8 +258,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'kurly-members',
-    name: '컬리멤버스',
-    aliases: ['kurly', '마켓컬리', '컬리'],
+    name: '컬리',
+    aliases: ['kurly', '마켓컬리', '컬리멤버스'],
     category: 'SHOPPING',
     color: '#5F0080',
     initial: '컬',
@@ -265,8 +267,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'baemin-club',
-    name: '배민클럽',
-    aliases: ['배달의민족', '배민'],
+    name: '배달의민족',
+    aliases: ['배민클럽', '배민'],
     category: 'SHOPPING',
     color: '#2AC1BC',
     initial: '배',
@@ -274,8 +276,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'yogipass',
-    name: '요기패스',
-    aliases: ['요기요', 'yogiyo', '요기패스x'],
+    name: '요기요',
+    aliases: ['요기패스', 'yogiyo', '요기패스x'],
     category: 'SHOPPING',
     color: '#FA0050',
     initial: '요',
@@ -469,8 +471,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'kakao-emoticon-plus',
-    name: '카카오톡 이모티콘 플러스',
-    aliases: ['이모티콘 플러스', '카톡 이모티콘'],
+    name: '카카오톡',
+    aliases: ['카카오톡 이모티콘 플러스', '이모티콘 플러스', '카톡 이모티콘'],
     category: 'ETC',
     color: '#FEE500',
     initial: '카',
@@ -479,8 +481,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'naver-webtoon-cookie',
-    name: '네이버웹툰 쿠키',
-    aliases: ['웹툰 쿠키', '쿠키 자동충전', '네이버웹툰'],
+    name: '네이버웹툰',
+    aliases: ['네이버웹툰 쿠키', '웹툰 쿠키', '쿠키 자동충전'],
     category: 'ETC',
     color: '#00DC64',
     initial: '웹',
@@ -489,8 +491,8 @@ export const CATALOG: CatalogItem[] = [
   },
   {
     id: 'x-premium',
-    name: 'X 프리미엄',
-    aliases: ['x premium', '트위터 블루', 'twitter'],
+    name: 'X',
+    aliases: ['x 프리미엄', 'x premium', '트위터 블루', 'twitter'],
     category: 'ETC',
     color: '#000000',
     initial: 'X',
@@ -527,30 +529,25 @@ export const CATALOG: CatalogItem[] = [
   },
 ];
 
-/** 등록된 구독 이름 → 칩 이니셜. 카탈로그에 없는 이름(직접 입력)은 첫 글자 */
-export function initialForServiceName(name: string): string {
-  const preset = CATALOG.find((i) => i.name === name);
-  return preset?.initial ?? [...name.trim()][0] ?? '?';
+export function findCatalogItem(catalogId: string | null): CatalogItem | null {
+  if (catalogId === null) return null;
+  return CATALOG.find((i) => i.id === catalogId) ?? null;
 }
 
 /**
- * 이름·금액·주기가 카탈로그 플랜과 일치하면 플랜 라벨('스탠다드' 등)을 반환한다.
- * 사용자가 금액을 수정했거나 직접 입력한 구독이면 null.
+ * 구독 → 칩 이니셜. 카탈로그 연결 구독은 catalogId로, 그 외엔 이름 일치로 찾고
+ * 둘 다 없으면(직접 입력) 첫 글자.
  */
-export function planLabelFor(sub: {
-  name: string;
-  amount: number;
-  currency: Currency;
-  cycle: Cycle;
-  cycleCount: number;
-}): string | null {
-  const item = CATALOG.find((i) => i.name === sub.name);
-  const plan = item?.plans.find(
-    (p) =>
-      p.amount === sub.amount &&
-      p.currency === sub.currency &&
-      p.cycle === sub.cycle &&
-      (p.cycleCount ?? 1) === sub.cycleCount,
-  );
-  return plan?.label ?? null;
+export function initialForSubscription(sub: { name: string; catalogId: string | null }): string {
+  const preset = findCatalogItem(sub.catalogId) ?? CATALOG.find((i) => i.name === sub.name);
+  return preset?.initial ?? [...sub.name.trim()][0] ?? '?';
+}
+
+/**
+ * 표시용 플랜 라벨. 저장된 planLabel이 실제 플랜명일 때만 반환한다.
+ * '직접 입력'(금액을 손수 고친 카탈로그 구독)이나 직접 입력 구독이면 null.
+ */
+export function displayPlanLabel(sub: { planLabel: string | null }): string | null {
+  if (sub.planLabel === null || sub.planLabel === MANUAL_PLAN_LABEL) return null;
+  return sub.planLabel;
 }

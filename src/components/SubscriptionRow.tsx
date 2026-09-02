@@ -1,7 +1,7 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { initialForServiceName } from '../data/catalog';
+import { initialForSubscription } from '../data/catalog';
 import { toBuiltinCategory } from '../domain/categoryStats';
 import { daysUntil } from '../domain/date';
 import { formatKrw, formatUsd, toBaseAmount } from '../domain/money';
@@ -16,8 +16,6 @@ export interface SubscriptionRowProps {
   /** 같은 카테고리 내 명도 단계 */
   shade: 1 | 2 | 3;
   usdRate: number;
-  /** hide_amounts 설정 */
-  hidden: boolean;
   /** line2 우측에 D-day 대신 표시할 텍스트 (해지함의 '해지됨' 등) */
   statusText?: string;
 }
@@ -28,9 +26,9 @@ function formatDday(days: number): string {
 
 /**
  * 구독 1행 (Figma 구독행 컴포넌트): 칩(40) + 금액 + "서비스명 · D-N".
- * USD면 원화 환산을 micro로 인라인, D-3 이하는 warning. 탭 → 상세.
+ * KRW는 2줄, USD는 "$20" 아래 "≈28,000원" 환산 줄이 끼어 3줄. D-3 이하는 warning. 탭 → 상세.
  */
-export function SubscriptionRow({ sub, shade, usdRate, hidden, statusText }: SubscriptionRowProps) {
+export function SubscriptionRow({ sub, shade, usdRate, statusText }: SubscriptionRowProps) {
   const { theme } = useTheme();
   const router = useRouter();
   const chip = getCategoryChipColors(theme, toBuiltinCategory(sub.category), shade);
@@ -50,22 +48,20 @@ export function SubscriptionRow({ sub, shade, usdRate, hidden, statusText }: Sub
       })}
     >
       <ServiceChip
-        initial={initialForServiceName(sub.name)}
+        initial={initialForSubscription(sub)}
         color={chip.bg}
         textColor={chip.text}
         size={40}
       />
       <View style={{ flex: 1, gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs }}>
-          <AppText variant="body" style={{ fontWeight: '700' }}>
-            {isUsd ? formatUsd(sub.amount, hidden) : formatKrw(sub.amount, hidden)}
+        <AppText variant="body" style={{ fontWeight: '700' }}>
+          {isUsd ? formatUsd(sub.amount) : formatKrw(sub.amount)}
+        </AppText>
+        {isUsd && (
+          <AppText variant="micro" color="tertiary">
+            ≈{formatKrw(toBaseAmount(sub, usdRate))}
           </AppText>
-          {isUsd && !hidden && (
-            <AppText variant="micro" color="tertiary">
-              ≈{formatKrw(toBaseAmount(sub, usdRate))}
-            </AppText>
-          )}
-        </View>
+        )}
         <View style={{ flexDirection: 'row', gap: theme.spacing.xs }}>
           <AppText variant="caption" color="secondary" numberOfLines={1} style={{ flexShrink: 1 }}>
             {sub.name} ·

@@ -13,7 +13,7 @@ import { toBaseAmount } from '../../src/domain/money';
 import type { Subscription } from '../../src/domain/types';
 import { getDb } from '../../src/db/database';
 import type { SqlDb } from '../../src/db/adapter';
-import { getHideAmounts, getUsdRate } from '../../src/repos/settingsRepo';
+import { getUsdRate } from '../../src/repos/settingsRepo';
 import {
   getMonthlyTotal,
   getUpcoming,
@@ -32,7 +32,6 @@ interface HomeData {
   upcoming: Subscription[];
   segments: CategorySegment[];
   usdRate: number;
-  hidden: boolean;
 }
 
 function loadHomeData(db: SqlDb): HomeData {
@@ -45,7 +44,6 @@ function loadHomeData(db: SqlDb): HomeData {
     upcoming: getUpcoming(db, UPCOMING_WINDOW_DAYS).slice(0, UPCOMING_LIMIT),
     segments: aggregateByCategory(active, usdRate),
     usdRate,
-    hidden: getHideAmounts(db),
   };
 }
 
@@ -82,13 +80,11 @@ export default function HomeScreen() {
               monthlyTotal={data.monthlyTotal}
               yearlyTotal={data.yearlyTotal}
               count={data.activeCount}
-              hidden={data.hidden}
             />
             {sortedUpcoming.length > 0 && (
               <UpcomingCard
                 subs={sortedUpcoming}
                 usdRate={data.usdRate}
-                hidden={data.hidden}
                 sort={sort}
                 onSortChange={setSort}
               />

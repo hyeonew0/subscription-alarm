@@ -86,14 +86,7 @@ export function getBackgroundTaskLastRunAt(db: SqlDb): string | null {
   return getSetting(db, 'background_task_last_run_at');
 }
 
-/** 금액 숨기기 (지하철 등 공공장소용 프라이버시 모드) */
-export function getHideAmounts(db: SqlDb): boolean {
-  return getSetting(db, 'hide_amounts') === 'true';
-}
-
-export function setHideAmounts(db: SqlDb, hidden: boolean): void {
-  setSetting(db, 'hide_amounts', hidden ? 'true' : 'false');
-}
+// hide_amounts 키는 v4 시드로 DB에 남아 있지만 기능이 폐지되어 더 이상 읽지 않는다.
 
 export function getNotifyPermissionAsked(db: SqlDb): boolean {
   return getSetting(db, 'notify_permission_asked') === 'true';

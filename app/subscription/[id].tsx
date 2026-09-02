@@ -9,7 +9,7 @@ import { OptionSheet } from '../../src/components/form/OptionSheet';
 import { Screen } from '../../src/components/Screen';
 import { SectionCard } from '../../src/components/SectionCard';
 import { ServiceChip } from '../../src/components/ServiceChip';
-import { initialForServiceName, planLabelFor } from '../../src/data/catalog';
+import { displayPlanLabel, initialForSubscription } from '../../src/data/catalog';
 import { CATEGORY_LABELS_KO, toBuiltinCategory } from '../../src/domain/categoryStats';
 import {
   daysUntil,
@@ -29,7 +29,7 @@ import {
   cancelForSubscription,
   scheduleForSubscription,
 } from '../../src/notifications/scheduler';
-import { getHideAmounts, getUsdRate } from '../../src/repos/settingsRepo';
+import { getUsdRate } from '../../src/repos/settingsRepo';
 import {
   getSubscription,
   softDeleteSubscription,
@@ -76,7 +76,6 @@ export default function SubscriptionDetailScreen() {
   );
 
   const usdRate = useMemo(() => getUsdRate(db), [db]);
-  const hidden = useMemo(() => getHideAmounts(db), [db]);
 
   const cancelled = sub?.status === 'CANCELLED';
 
@@ -152,7 +151,7 @@ export default function SubscriptionDetailScreen() {
 
   const category = toBuiltinCategory(sub.category);
   const chip = getCategoryChipColors(theme, category, 1);
-  const plan = planLabelFor(sub);
+  const plan = displayPlanLabel(sub);
   const dday = daysUntil(sub.nextBillingAt);
   const isUsd = sub.currency === 'USD';
 
@@ -163,7 +162,7 @@ export default function SubscriptionDetailScreen() {
       <Card>
         <View style={{ alignItems: 'center', gap: theme.spacing.md }}>
           <ServiceChip
-            initial={initialForServiceName(sub.name)}
+            initial={initialForSubscription(sub)}
             color={chip.bg}
             textColor={chip.text}
             size={64}
@@ -183,20 +182,32 @@ export default function SubscriptionDetailScreen() {
             </View>
           )}
           <View style={{ alignItems: 'center', gap: theme.spacing.xs }}>
-            <AppText variant="title">{sub.name}</AppText>
+            {/* 서비스명 · 플랜 (플랜은 저장된 plan_label, 직접 입력이면 생략) */}
+            <AppText variant="title">
+              {sub.name}
+              {plan ? ` · ${plan}` : ''}
+            </AppText>
             <AppText variant="caption" color="tertiary">
               {CATEGORY_LABELS_KO[category]}
-              {plan ? ` · ${plan}` : ''}
             </AppText>
           </View>
           <View style={{ alignItems: 'center', gap: 2, paddingTop: theme.spacing.xs }}>
             <AppText variant="display">
-              {isUsd ? formatUsd(sub.amount, hidden) : formatKrw(sub.amount, hidden)}
+              {isUsd ? formatUsd(sub.amount) : formatKrw(sub.amount)}
             </AppText>
             <AppText variant="caption" color="secondary">
               {formatCycleShort(sub.cycle, sub.cycleCount)}
-              {isUsd && !hidden ? ` · ≈${formatKrw(toBaseAmount(sub, usdRate))}` : ''}
             </AppText>
+            {isUsd && (
+              <View style={{ alignItems: 'center', gap: 2, paddingTop: theme.spacing.xs }}>
+                <AppText variant="caption" color="secondary">
+                  ≈ {formatKrw(toBaseAmount(sub, usdRate))} ({formatKrw(usdRate)}/$ 기준)
+                </AppText>
+                <AppText variant="micro" color="tertiary">
+                  결제일 환율에 따라 실제 청구액은 달라질 수 있어요
+                </AppText>
+              </View>
+            )}
           </View>
         </View>
       </Card>
